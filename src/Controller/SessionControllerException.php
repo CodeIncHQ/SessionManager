@@ -41,7 +41,7 @@ class SessionControllerException extends SessionException {
 	 * SessionControllerException constructor.
 	 *
 	 * @param string $message
-	 * @param SessionController $sessionController
+	 * @param SessionController|null $sessionController
 	 * @param int|null $code
 	 * @param null|Throwable $previous
 	 */
