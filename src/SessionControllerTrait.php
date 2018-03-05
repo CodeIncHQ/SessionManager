@@ -52,7 +52,7 @@ trait SessionControllerTrait {
 	 *
 	 * @return SessionManager
 	 */
-	protected function getSessionManager():SessionManager
+	public function getSessionManager():SessionManager
 	{
 		return $this->sessionManager;
 	}
