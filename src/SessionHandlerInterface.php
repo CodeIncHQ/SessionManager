@@ -17,7 +17,7 @@
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     04/03/2018
 // Time:     09:52
-// Project:  intranet
+// Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session;
@@ -26,7 +26,7 @@ namespace CodeInc\Session;
 /**
  * Interface SessionHandlerInterface
  *
- * @package Intranet\Services\Session
+ * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
 interface SessionHandlerInterface {

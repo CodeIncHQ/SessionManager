@@ -17,7 +17,7 @@
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     02/03/2018
 // Time:     10:45
-// Project:  intranet
+// Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session;
@@ -28,7 +28,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Class SessionManager
  *
- * @package CodeInc\AppLib\Services\Session
+ * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
 class SessionManager implements \IteratorAggregate, \ArrayAccess {

@@ -17,7 +17,7 @@
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     02/03/2018
 // Time:     10:46
-// Project:  intranet
+// Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Middleware;
@@ -32,7 +32,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Class SessionMiddleware
  *
- * @package CodeInc\AppLib\Services\Session\Middleware
+ * @package CodeInc\Session\Middleware
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
 class SessionMiddleware extends AbstractRecursiveMiddleware {

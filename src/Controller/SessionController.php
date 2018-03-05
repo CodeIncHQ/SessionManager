@@ -17,7 +17,7 @@
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     02/03/2018
 // Time:     11:28
-// Project:  intranet
+// Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Controller;
@@ -30,7 +30,7 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * Class SessionController
  *
- * @package CodeInc\AppLib\Services\Session\Controller
+ * @package CodeInc\Session\Controller
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
 abstract class SessionController extends RouterController {

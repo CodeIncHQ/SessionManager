@@ -17,7 +17,7 @@
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     04/03/2018
 // Time:     13:14
-// Project:  intranet
+// Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Controller;
@@ -28,7 +28,7 @@ use Throwable;
 /**
  * Class SessionControllerException
  *
- * @package CodeInc\AppLib\Services\Session\Controller
+ * @package CodeInc\Session\Controller
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
 class SessionControllerException extends SessionException {
