@@ -40,6 +40,6 @@ class SessionException extends \Exception {
 	 */
 	public function __construct(string $message, ?int $code = null, ?Throwable $previous = null)
 	{
-		parent::__construct($message, $code, $previous);
+		parent::__construct($message, $code ?? 0, $previous);
 	}
 }
