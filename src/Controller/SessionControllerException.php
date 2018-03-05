@@ -33,7 +33,7 @@ use Throwable;
  */
 class SessionControllerException extends SessionException {
 	/**
-	 * @var SessionController
+	 * @var SessionController|null
 	 */
 	private $sessionController;
 
@@ -45,7 +45,7 @@ class SessionControllerException extends SessionException {
 	 * @param int|null $code
 	 * @param null|Throwable $previous
 	 */
-	public function __construct(string $message, SessionController $sessionController,
+	public function __construct(string $message, ?SessionController $sessionController = null,
 		?int $code = null, ?Throwable $previous = null)
 	{
 		$this->sessionController = $sessionController;
@@ -53,9 +53,9 @@ class SessionControllerException extends SessionException {
 	}
 
 	/**
-	 * @return SessionController
+	 * @return SessionController|null
 	 */
-	public function getSessionController():SessionController
+	public function getSessionController():?SessionController
 	{
 		return $this->sessionController;
 	}
