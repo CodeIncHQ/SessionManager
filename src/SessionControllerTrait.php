@@ -15,47 +15,45 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     02/03/2018
-// Time:     11:28
+// Date:     05/03/2018
+// Time:     12:59
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Controller;
-use CodeInc\Router\Controller\ControllerInterface;
+namespace CodeInc\Session;
 use Psr\Http\Message\ServerRequestInterface;
 
 
 /**
- * Class SessionController
+ * Trait SessionControllerTrait
  *
- * @package CodeInc\Session\Controller
+ * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-abstract class SessionController implements ControllerInterface {
-	use SessionControllerTrait;
-
+trait SessionControllerTrait {
 	/**
-	 * @var ServerRequestInterface
+	 * @var SessionManager
 	 */
-	private $request;
+	private $sessionManager;
 
 	/**
-	 * SessionController constructor.
-	 *
 	 * @param ServerRequestInterface $request
-	 * @throws SessionControllerException
+	 * @throws SessionException
 	 */
-	public function __construct(ServerRequestInterface $request)
+	protected function configureSessionManager(ServerRequestInterface $request):void
 	{
-		$this->request = $request;
-		$this->configureSessionManager($request);
+		if (($this->sessionManager = SessionMiddleware::detachService($request)) === null) {
+			throw new SessionException("The session service is not available in the request attributes.");
+		}
 	}
 
 	/**
-	 * @return ServerRequestInterface
+	 * Returns the session service extracted from the request object.
+	 *
+	 * @return SessionManager
 	 */
-	protected function getRequest():ServerRequestInterface
+	protected function getSessionManager():SessionManager
 	{
-		return $this->request;
+		return $this->sessionManager;
 	}
 }

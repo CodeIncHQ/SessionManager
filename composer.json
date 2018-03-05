@@ -1,6 +1,6 @@
 {
   "name": "codeinchq/lib-session",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Simple session management library written in PHP 7",
   "homepage": "https://github.com/codeinchq/lib-session",
   "type": "library",
@@ -9,8 +9,7 @@
     "php": ">=7.1",
     "psr/http-server-handler": "^1.0",
     "hansott/psr7-cookies": "^1.0",
-    "codeinchq/lib-psr15middlewares": "^1.2",
-    "codeinchq/lib-router": "^1.0"
+    "codeinchq/lib-psr15middlewares": "^1.2"
   },
   "require-dev": {
     "phpunit/phpunit": "^7",
@@ -36,7 +35,6 @@
     }
   },
   "repositories": [
-    { "type": "vcs", "url": "https://github.com/codeinchq/lib-psr15middlewares" },
-    { "type": "vcs", "url": "https://github.com/codeinchq/lib-router" }
+    { "type": "vcs", "url": "https://github.com/codeinchq/lib-psr15middlewares" }
   ]
 }

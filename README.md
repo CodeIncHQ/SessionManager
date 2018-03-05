@@ -7,7 +7,6 @@ Saving and writting the session goes through a session handler implementing the 
 ```php
 <?php
 use CodeInc\Session\SessionManager;
-use CodeInc\Session\Middleware\SessionMiddleware;
 use GuzzleHttp\Psr7\ServerRequest;
 use CodeInc\Session\SessionHandlerInterface;
 
@@ -39,6 +38,12 @@ echo $sessionManager["test"];
 foreach ($sessionManager as $var => $value) {
 	echo "$var = $value\n";
 }
+```
+
+### Middleware 
+```php
+<?php
+use CodeInc\Session\Middleware\SessionMiddleware;
 
 // a PST-15 middleware is provided to attach to session manager to the request object
 // and to send out the session cookie by attaching them to the PSR-7 response.
@@ -46,8 +51,10 @@ $middleware = new SessionMiddleware($sessionManager);
 $psr7Response = $middleware->process($psr7ServerRequest, $somePsr15RequestHandler);
 ```
 
-## Installation
+A trait `SessionControllerTrait` is provided to allow access to the session manager from within a controller when the request has been processed using `SessionMiddleware`.
 
+
+## Installation
 This library is available through [Packagist](https://packagist.org/packages/codeinchq/lib-session) and can be installed using [Composer](https://getcomposer.org/): 
 
 ```bash
@@ -55,6 +62,5 @@ composer require codeinchq/lib-session
 ```
 
 ## License
-
 This library is published under the MIT license (see the [LICENSE](https://github.com/CodeIncHQ/lib-session/blob/master/LICENSE) file). 
 

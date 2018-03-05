@@ -20,8 +20,7 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Middleware;
-use CodeInc\Session\SessionManager;
+namespace CodeInc\Session;
 use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -32,7 +31,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Class SessionMiddleware
  *
- * @package CodeInc\Session\Middleware
+ * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
 class SessionMiddleware extends AbstractRecursiveMiddleware {
