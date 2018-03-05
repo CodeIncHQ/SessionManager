@@ -35,9 +35,9 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	public const DEFAULT_NAME = "SID";
 	public const DEFAULT_EXPIRE = 60;
 
-	public const KEY_IP = "__clientIp";
-	public const KEY_LAST_REQ = "__lastRequest";
-	private const KEYS = [self::KEY_IP, self::KEY_LAST_REQ];
+	public const HEADER_IP = "__clientIp";
+	public const HEADER_LAST_REQ = "__lastRequest";
+	private const HEADERS = [self::HEADER_IP, self::HEADER_LAST_REQ];
 
 	/**
 	 * Parent request
@@ -132,7 +132,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	public function __destruct()
 	{
 		if ($this->isStarted()) {
-			$this->data[self::KEY_LAST_REQ] = time();
+			$this->data[self::HEADER_LAST_REQ] = time();
 			$this->handler->writeData($this->id, $this->data);
 		}
 	}
@@ -166,6 +166,18 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	}
 
 	/**
+	 * Stops the session. All session data are destroyed in memory and on the storage unit through the handler.
+	 */
+	public function stop():void
+	{
+		if ($this->isStarted()) {
+			$this->handler->remove($this->id);
+		}
+		$this->id = null;
+		$this->data = [];
+	}
+
+	/**
 	 * Generates a new session id.
 	 *
 	 * @throws SessionManagerException
@@ -175,8 +187,8 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 		try {
 			$this->id = bin2hex(random_bytes(32));
 			$this->data = [
-				self::KEY_IP => $this->request->getServerParams()["REMOTE_ADDR"] ?? null,
-				self::KEY_LAST_REQ => time()
+				self::HEADER_IP => $this->request->getServerParams()["REMOTE_ADDR"] ?? null,
+				self::HEADER_LAST_REQ => time()
 			];
 		}
 		catch (\Throwable $exception) {
@@ -218,7 +230,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 */
 	public function getLastRequestTimestamp():?int
 	{
-		return $this->data[self::KEY_LAST_REQ];
+		return $this->data[self::HEADER_LAST_REQ];
 	}
 
 	/**
@@ -228,7 +240,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 */
 	public function getClientIp():?string
 	{
-		return $this->data[self::KEY_IP] ?? null;
+		return $this->data[self::HEADER_IP] ?? null;
 	}
 
 	/**
@@ -361,7 +373,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	public function unsetData():void
 	{
 		foreach (array_keys($this->data) as $var) {
-			if (!in_array($var, self::KEYS)) {
+			if (!in_array($var, self::HEADERS)) {
 				unset($this->data[$var]);
 			}
 		}
@@ -419,7 +431,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 */
 	public function offsetSet($offset, $value):void
 	{
-		if (in_array($offset, self::KEYS)) {
+		if (in_array($offset, self::HEADERS)) {
 			throw new SessionManagerException(
 				sprintf("Unable to write the offset %s, this offset is reserved for the session manager",
 					$offset),
@@ -455,6 +467,13 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 */
 	public function offsetUnset($offset):void
 	{
+		if (in_array($offset, self::HEADERS)) {
+			throw new SessionManagerException(
+				sprintf("Unable to unset the offset %s, this offset is reserved for the session manager",
+					$offset),
+				$this
+			);
+		}
 		unset($this->data[$offset]);
 	}
 }

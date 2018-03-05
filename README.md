@@ -9,19 +9,50 @@ Saving and writting the session goes through a session handler implementing the 
 use CodeInc\Session\SessionManager;
 use CodeInc\Session\Middleware\SessionMiddleware;
 use GuzzleHttp\Psr7\ServerRequest;
+use CodeInc\Session\SessionHandlerInterface;
 
+// handling the session data goes through a handler class
+final class MySesionHandler implements SessionHandlerInterface {
+	// reads session data
+    public function readData(string $sessionId):array {};
+
+   // write session data
+    public function writeData(string $sessionId, array $data):void {};
+
+    // removes session data
+    public function remove(string $sessionId):void {};
+}
+
+// the session manager need the request object and a session handler to start
 $psr7ServerRequest = ServerRequest::fromGlobals();
-
 $sessionManager = new SessionManager($psr7ServerRequest, new MySesionHandler());
 $sessionManager->setName("AGreatSession");
+$sessionManager->setExpire(30); // minutes
+$sessionManager->validateClientIp(true);
+$sessionManager->start();
 
+// SessionManager implement ArrayAccess 
+$sessionManager["test"] = "Hello wold!";
+echo $sessionManager["test"];
+
+// SessionManager is also iterable
+foreach ($sessionManager as $var => $value) {
+	echo "$var = $value\n";
+}
+
+// a PST-15 middleware is provided to attach to session manager to the request object
+// and to send out the session cookie by attaching them to the PSR-7 response.
 $middleware = new SessionMiddleware($sessionManager);
-$psr7Response = $middleware->process($psr7ServerRequest, $psr15RequestHandler);
+$psr7Response = $middleware->process($psr7ServerRequest, $somePsr15RequestHandler);
 ```
 
 ## Installation
 
-**To be written**
+This library is available through [Packagist](https://packagist.org/packages/codeinchq/lib-session) and can be installed using [Composer](https://getcomposer.org/): 
+
+```bash
+composer require codeinchq/lib-session
+```
 
 ## License
 
