@@ -34,5 +34,9 @@
     "preferred-install": {
       "*": "dist"
     }
-  }
+  },
+  "repositories": [
+    { "type": "vcs", "url": "https://github.com/codeinchq/lib-psr15middlewares" },
+    { "type": "vcs", "url": "https://github.com/codeinchq/lib-router" }
+  ]
 }

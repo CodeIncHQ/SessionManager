@@ -21,7 +21,7 @@
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Controller;
-use CodeInc\AppLib\Services\Router\RouterController;
+use CodeInc\Router\ControllerInterface;
 use CodeInc\Session\SessionManager;
 use CodeInc\Session\Middleware\SessionMiddleware;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,11 +33,16 @@ use Psr\Http\Message\ServerRequestInterface;
  * @package CodeInc\Session\Controller
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-abstract class SessionController extends RouterController {
+abstract class SessionController implements ControllerInterface {
 	/**
 	 * @var SessionManager
 	 */
 	private $session;
+
+	/**
+	 * @var ServerRequestInterface
+	 */
+	private $request;
 
 	/**
 	 * SessionController constructor.
@@ -47,7 +52,7 @@ abstract class SessionController extends RouterController {
 	 */
 	public function __construct(ServerRequestInterface $request)
 	{
-		parent::__construct($request);
+		$this->request = $request;
 		if (($this->session = SessionMiddleware::detachService($request)) === null) {
 			throw new SessionControllerException(
 				"The session service is not available in the request attributes.",
@@ -57,11 +62,19 @@ abstract class SessionController extends RouterController {
 	}
 
 	/**
+	 * @return ServerRequestInterface
+	 */
+	protected function getRequest():ServerRequestInterface
+	{
+		return $this->request;
+	}
+
+	/**
 	 * Returns the session service extracted from the request object.
 	 *
 	 * @return SessionManager
 	 */
-	public function getSessionManager():SessionManager
+	protected function getSessionManager():SessionManager
 	{
 		return $this->session;
 	}
