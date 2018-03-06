@@ -141,7 +141,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 * Detaches and returns the session manager from a request.
 	 *
 	 * @param ServerRequestInterface $request
-	 * @return SessionManager
+	 * @return static
 	 * @throws SessionManagerException
 	 */
 	public static function fromRequest(ServerRequestInterface $request):self
