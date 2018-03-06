@@ -118,12 +118,12 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 * @param int|null $sessionExpire
 	 */
 	public function __construct(ServerRequestInterface $request, SessionHandlerInterface $handler,
-		?string $sessionName = null, ?int $sessionExpire = null)
+		?string $sessionName = self::DEFAULT_NAME, ?int $sessionExpire = self::DEFAULT_EXPIRE)
 	{
 		$this->request = $request;
 		$this->handler = $handler;
-		$this->name = $sessionName ?? self::DEFAULT_NAME;
-		$this->expire = $sessionExpire ?? self::DEFAULT_EXPIRE;
+		$this->name = $sessionName;
+		$this->expire = $sessionExpire;
 	}
 
 	/**
@@ -141,15 +141,19 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 * Detaches and returns the session manager from a request.
 	 *
 	 * @param ServerRequestInterface $request
-	 * @return static
+	 * @param bool $force
+	 * @return static|null
 	 * @throws SessionManagerException
 	 */
-	public static function fromRequest(ServerRequestInterface $request):self
+	public static function fromRequest(ServerRequestInterface $request, bool $force = false):?SessionManager
 	{
 		if ($sessionManager = $request->getAttribute(self::class)) {
-			throw new SessionManagerException(
-				"The session manager is not available in the request attributes"
-			);
+			if (!$force) {
+				throw new SessionManagerException(
+					"The session manager is not available in the request attributes"
+				);
+			}
+			return null;
 		}
 		return $sessionManager;
 	}
