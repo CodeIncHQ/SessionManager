@@ -40,7 +40,7 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	/**
 	 * @var SessionManager
 	 */
-	private $session;
+	private $sessionManager;
 
 	/**
 	 * SessionMiddleware constructor.
@@ -51,7 +51,7 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	public function __construct(SessionManager $session, ?MiddlewareInterface $nextMiddleware = null)
 	{
 		parent::__construct($nextMiddleware);
-		$this->session = $session;
+		$this->sessionManager = $session;
 	}
 
 	/**
@@ -63,44 +63,19 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler):ResponseInterface
 	{
 		// loading and attaching the session service
-		$this->session->start();
+		$this->sessionManager->start();
 
 		// processing
 		$response = parent::process(
-			self::attachService($request, $this->session),
+			$this->sessionManager->attacheToRequest($request),
 			$handler
 		);
 
 		// attaching the session cookie to the response
-		if ($sessionCookie = $this->session->getSessionCookie()) {
+		if ($sessionCookie = $this->sessionManager->getSessionCookie()) {
 			$response = $sessionCookie->addToResponse($response);
 		}
 
 		return $response;
-	}
-
-	/**
-	 * Attaches a session service to a requesst.
-	 *
-	 * @param ServerRequestInterface $request
-	 * @param SessionManager $session
-	 * @return ServerRequestInterface
-	 */
-	public static function attachService(ServerRequestInterface $request,
-		SessionManager $session):ServerRequestInterface
-	{
-		return $request->withAttribute(self::REQ_SRV_ATTR, $session);
-	}
-
-	/**
-	 * Detaches and returns the session service from a request. Returns null if the request does not include any
-	 * session service.
-	 *
-	 * @param ServerRequestInterface $request
-	 * @return SessionManager|null
-	 */
-	public static function detachService(ServerRequestInterface $request):?SessionManager
-	{
-		return $request->getAttribute(self::REQ_SRV_ATTR);
 	}
 }

@@ -138,6 +138,34 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	}
 
 	/**
+	 * Detaches and returns the session manager from a request.
+	 *
+	 * @param ServerRequestInterface $request
+	 * @return SessionManager
+	 * @throws SessionManagerException
+	 */
+	public static function fromRequest(ServerRequestInterface $request):self
+	{
+		if ($sessionManager = $request->getAttribute(self::class)) {
+			throw new SessionManagerException(
+				"The session manager is not available in the request attributes"
+			);
+		}
+		return $sessionManager;
+	}
+
+	/**
+	 * Attaches the session manager to a requesst.
+	 *
+	 * @param ServerRequestInterface $request
+	 * @return ServerRequestInterface
+	 */
+	public function attacheToRequest(ServerRequestInterface $request):ServerRequestInterface
+	{
+		return $request->withAttribute(self::class, $this);
+	}
+
+	/**
 	 * @throws SessionManagerException
 	 */
 	public function start():void

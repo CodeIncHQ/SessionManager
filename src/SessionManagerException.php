@@ -44,7 +44,7 @@ class SessionManagerException extends SessionException {
 	 * @param int|null $code
 	 * @param null|Throwable $previous
 	 */
-	public function __construct(string $message = "", ?SessionManager $sessionManager, ?int $code = null,
+	public function __construct(string $message = "", ?SessionManager $sessionManager = null, ?int $code = null,
 		?Throwable $previous = null)
 	{
 		$this->sessionManager = $sessionManager;
