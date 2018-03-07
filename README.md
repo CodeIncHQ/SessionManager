@@ -24,13 +24,13 @@ final class MySesionHandler implements SessionHandlerInterface {
 }
 
 // the session manager need the request object and a session handler to start
-$psr7ServerRequest = ServerRequest::fromGlobals();
-$config = new SessionConfig(new MySessionHandler);
-$config->setName("AGreatSession");
-$config->setExpire(30); // minutes
-$config->setValidateClientIp(true);
+$sessionConfig = new SessionConfig(new MySessionHandler);
+$sessionConfig->setName("AGreatSession");
+$sessionConfig->setExpire(30); // minutes
+$sessionConfig->setValidateClientIp(true);
 
-$sessionManager = new SessionManager($psr7ServerRequest, $config);
+$psr7ServerRequest = ServerRequest::fromGlobals();
+$sessionManager = new SessionManager($psr7ServerRequest, $sessionConfig);
 $sessionManager->start();
 
 // SessionManager implement ArrayAccess 
