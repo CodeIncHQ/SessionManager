@@ -138,6 +138,22 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	}
 
 	/**
+	 * @return ServerRequestInterface
+	 */
+	protected function getRequest():ServerRequestInterface
+	{
+		return $this->request;
+	}
+
+	/**
+	 * @return SessionHandlerInterface
+	 */
+	protected function getHandler():SessionHandlerInterface
+	{
+		return $this->handler;
+	}
+
+	/**
 	 * Detaches and returns the session manager from a request.
 	 *
 	 * @param ServerRequestInterface $request
