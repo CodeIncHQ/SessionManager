@@ -64,6 +64,7 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	{
 		// loading and attaching the session service
 		$sessionManager = $this->newSessionManager($request);
+		$sessionManager->start();
 
 		// processing
 		$response = parent::process(
