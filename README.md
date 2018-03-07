@@ -7,6 +7,7 @@ Saving and writting the session goes through a session handler implementing the 
 ```php
 <?php
 use CodeInc\Session\SessionManager;
+use CodeInc\Session\SessionConfig;
 use GuzzleHttp\Psr7\ServerRequest;
 use CodeInc\Session\SessionHandlerInterface;
 
@@ -24,10 +25,12 @@ final class MySesionHandler implements SessionHandlerInterface {
 
 // the session manager need the request object and a session handler to start
 $psr7ServerRequest = ServerRequest::fromGlobals();
-$sessionManager = new SessionManager($psr7ServerRequest, new MySesionHandler());
-$sessionManager->setName("AGreatSession");
-$sessionManager->setExpire(30); // minutes
-$sessionManager->validateClientIp(true);
+$config = new SessionConfig(new MySessionHandler);
+$config->setName("AGreatSession");
+$config->setExpire(30); // minutes
+$config->setValidateClientIp(true);
+
+$sessionManager = new SessionManager($psr7ServerRequest, $config);
 $sessionManager->start();
 
 // SessionManager implement ArrayAccess 
@@ -43,7 +46,7 @@ foreach ($sessionManager as $var => $value) {
 ### Middleware 
 ```php
 <?php
-use CodeInc\Session\Middleware\SessionMiddleware;
+use CodeInc\Session\SessionMiddleware;
 
 // a PST-15 middleware is provided to attach to session manager to the request object
 // and to send out the session cookie by attaching them to the PSR-7 response.
