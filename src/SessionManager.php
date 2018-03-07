@@ -41,12 +41,12 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 *
 	 * @var ServerRequestInterface
 	 */
-	protected $request;
+	private $request;
 
 	/**
 	 * @var SessionConfigInterface
 	 */
-	protected $config;
+	private $config;
 
 	/**
 	 * Session ID
@@ -83,6 +83,22 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 			$this->data[self::HEADER_LAST_REQ] = time();
 			$this->config->getHandler()->writeData($this->id, $this->data);
 		}
+	}
+
+	/**
+	 * @return SessionConfigInterface
+	 */
+	public function getConfig():SessionConfigInterface
+	{
+		return $this->config;
+	}
+
+	/**
+	 * @return ServerRequestInterface
+	 */
+	public function getRequest():ServerRequestInterface
+	{
+		return $this->request;
 	}
 
 	/**
