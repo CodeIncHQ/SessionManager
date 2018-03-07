@@ -29,7 +29,7 @@ namespace CodeInc\Session;
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionConfig {
+final class SessionConfig implements SessionConfigInterface {
 	public const DEFAULT_NAME = "SID";
 	public const DEFAULT_EXPIRE = 60;
 

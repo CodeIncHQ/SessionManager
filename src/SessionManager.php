@@ -44,7 +44,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	protected $request;
 
 	/**
-	 * @var SessionConfig
+	 * @var SessionConfigInterface
 	 */
 	protected $config;
 
@@ -66,9 +66,9 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 * SessionManager constructor.
 	 *
 	 * @param ServerRequestInterface $request
-	 * @param SessionConfig|null $sessionConfig
+	 * @param SessionConfigInterface|null $sessionConfig
 	 */
-	public function __construct(ServerRequestInterface $request, SessionConfig $sessionConfig)
+	public function __construct(ServerRequestInterface $request, SessionConfigInterface $sessionConfig)
 	{
 		$this->request = $request;
 		$this->config = $sessionConfig;

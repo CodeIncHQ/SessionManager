@@ -38,17 +38,17 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	const REQ_SRV_ATTR = SessionManager::class;
 
 	/**
-	 * @var SessionConfig
+	 * @var SessionConfigInterface
 	 */
 	protected $sessionConfig;
 
 	/**
 	 * SessionMiddleware constructor.
 	 *
-	 * @param SessionConfig $sessionConfig
+	 * @param SessionConfigInterface $sessionConfig
 	 * @param null|MiddlewareInterface $nextMiddleware
 	 */
-	public function __construct(SessionConfig $sessionConfig, ?MiddlewareInterface $nextMiddleware = null)
+	public function __construct(SessionConfigInterface $sessionConfig, ?MiddlewareInterface $nextMiddleware = null)
 	{
 		parent::__construct($nextMiddleware);
 		$this->sessionConfig = $sessionConfig;
