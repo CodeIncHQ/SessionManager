@@ -30,7 +30,7 @@ use Throwable;
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManagerException extends SessionException {
+class SessionManagerException extends \Exception {
 	/**
 	 * @var SessionManager|null
 	 */
@@ -44,11 +44,11 @@ class SessionManagerException extends SessionException {
 	 * @param int|null $code
 	 * @param null|Throwable $previous
 	 */
-	public function __construct(string $message = "", ?SessionManager $sessionManager = null, ?int $code = null,
-		?Throwable $previous = null)
+	public function __construct(string $message = "", ?SessionManager $sessionManager = null,
+		?int $code = null, ?Throwable $previous = null)
 	{
 		$this->sessionManager = $sessionManager;
-		parent::__construct($message, $code, $previous);
+		parent::__construct($message, $code ?? 0, $previous);
 	}
 
 	/**

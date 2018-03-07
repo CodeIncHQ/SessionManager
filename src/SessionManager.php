@@ -34,19 +34,11 @@ use Psr\Http\Message\ServerRequestInterface;
 class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	public const HEADER_IP = "__clientIp";
 	public const HEADER_LAST_REQ = "__lastRequest";
-	private const HEADERS = [self::HEADER_IP, self::HEADER_LAST_REQ];
+	public const HEADER_CLEAN_UP = "__cleanUp";
+	private const ALL_HEADERS = [self::HEADER_IP, self::HEADER_LAST_REQ, self::HEADER_CLEAN_UP];
 
-	/**
-	 * Parent request
-	 *
-	 * @var ServerRequestInterface
-	 */
-	private $request;
-
-	/**
-	 * @var SessionConfigInterface
-	 */
-	private $config;
+	public const DEFAULT_NAME = "SID";
+	public const DEFAULT_EXPIRE = 60;
 
 	/**
 	 * Session ID
@@ -54,6 +46,67 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 * @var string
 	 */
 	protected $id;
+
+	/**
+	 * Session name
+	 *
+	 * @var string
+	 */
+	private $name;
+
+	/**
+	 * Session lifespan in minutes.
+	 *
+	 * @var int
+	 */
+	private $expire;
+
+	/**
+	 * Session cookie host
+	 *
+	 * @var string|null
+	 */
+	private $cookieHost;
+
+	/**
+	 * Session cookie secure
+	 *
+	 * @var bool|null
+	 */
+	private $cookieSecure;
+
+	/**
+	 * Session cookie path
+	 *
+	 * @var string|null
+	 */
+	private $cookiePath;
+
+	/**
+	 * Verifies if the session cookie must be HTTP only.
+	 *
+	 * @var bool
+	 */
+	private $cookieHttpOnly = true;
+
+	/**
+	 * @var \SessionHandlerInterface
+	 */
+	private $handler;
+
+	/**
+	 * Verifies if the client IP address needs to be validated.
+	 *
+	 * @var bool
+	 */
+	private $validateClientIp = false;
+
+	/**
+	 * Parent request
+	 *
+	 * @var ServerRequestInterface
+	 */
+	private $request;
 
 	/**
 	 * Session data
@@ -66,12 +119,17 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 * SessionManager constructor.
 	 *
 	 * @param ServerRequestInterface $request
-	 * @param SessionConfigInterface|null $sessionConfig
+	 * @param \SessionHandlerInterface $handler
+	 * @param null|string $name
+	 * @param int|null $expire
 	 */
-	public function __construct(ServerRequestInterface $request, SessionConfigInterface $sessionConfig)
+	public function __construct(ServerRequestInterface $request, \SessionHandlerInterface $handler,
+		?string $name = null, ?int $expire = null)
 	{
 		$this->request = $request;
-		$this->config = $sessionConfig;
+		$this->handler = $handler;
+		$this->name = $name ?? self::DEFAULT_NAME;
+		$this->expire = $expire ?? self::DEFAULT_EXPIRE;
 	}
 
 	/**
@@ -81,16 +139,12 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	{
 		if ($this->isStarted()) {
 			$this->data[self::HEADER_LAST_REQ] = time();
-			$this->config->getHandler()->writeData($this->id, $this->data);
+			if (!isset($this->data[self::HEADER_CLEAN_UP])) {
+				$this->getHandler()->gc($this->getExpire() * 60);
+				$this->data[self::HEADER_CLEAN_UP] = true;
+			}
+			$this->getHandler()->write($this->id, serialize($this->data));
 		}
-	}
-
-	/**
-	 * @return SessionConfigInterface
-	 */
-	public function getConfig():SessionConfigInterface
-	{
-		return $this->config;
 	}
 
 	/**
@@ -102,39 +156,11 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	}
 
 	/**
-	 * Detaches and returns the session manager from a request.
-	 *
-	 * @param ServerRequestInterface $request
-	 * @param string $attrName Attribute name
-	 * @param bool $force
-	 * @return static|null
-	 * @throws SessionManagerException
+	 * @return \SessionHandlerInterface
 	 */
-	public static function fromRequest(ServerRequestInterface $request, string $attrName = self::class,
-		bool $force = false):?SessionManager
+	public function getHandler():\SessionHandlerInterface
 	{
-		if (($sessionManager = $request->getAttribute($attrName)) === null) {
-			if (!$force) {
-				throw new SessionManagerException(
-					"The session manager is not available in the request attributes"
-				);
-			}
-			return null;
-		}
-		return $sessionManager;
-	}
-
-	/**
-	 * Attaches the session manager to a requesst.
-	 *
-	 * @param ServerRequestInterface $request
-	 * @param string $attrName Attribute name
-	 * @return ServerRequestInterface
-	 */
-	public function attacheToRequest(ServerRequestInterface $request,
-		string $attrName = self::class):ServerRequestInterface
-	{
-		return $request->withAttribute($attrName, $this);
+		return $this->handler;
 	}
 
 	/**
@@ -143,13 +169,22 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	public function start():void
 	{
 		try {
-			// if the session exists
-			if (isset($this->request->getCookieParams()[$this->config->getName()])) {
-				$this->id = $this->request->getCookieParams()[$this->config->getName()];
+			// loading the session id
+			$this->id = $this->getRequest()->getCookieParams()[$this->getName()]
+				?? bin2hex(random_bytes(32));
 
+			// starting the handler
+			$this->getHandler()->open('', $this->id);
+
+			// if the session exists
+			if (isset($this->getRequest()->getCookieParams()[$this->getName()])) {
 				// the session is not valid = we delete the previous one and create a new one.
-				if (!($this->data = $this->config->getHandler()->readData($this->id)) || !$this->isValid()) {
-					$this->config->getHandler()->remove($this->id);
+				if (!($data = $this->getHandler()->read($this->id))
+					|| !($this->data = unserialize($data))
+					|| !is_array($this->data)
+					|| !$this->isValid())
+				{
+					$this->getHandler()->destroy($this->id);
 					$this->newSession();
 				}
 			}
@@ -171,30 +206,22 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	public function stop():void
 	{
 		if ($this->isStarted()) {
-			$this->config->getHandler()->remove($this->id);
+			$this->getHandler()->destroy($this->id);
+			$this->getHandler()->close();
 		}
 		$this->id = null;
 		$this->data = [];
 	}
 
 	/**
-	 * Generates a new session id.
-	 *
-	 * @throws SessionManagerException
+	 * Generates a new session.
 	 */
 	private function newSession():void
 	{
-		try {
-			$this->id = bin2hex(random_bytes(32));
-			$this->data = [
-				self::HEADER_IP => $this->request->getServerParams()["REMOTE_ADDR"] ?? null,
-				self::HEADER_LAST_REQ => time()
-			];
-		}
-		catch (\Throwable $exception) {
-			throw new SessionManagerException("Unable to start a new session",
-				$this, null, $exception);
-		}
+		$this->data = [
+			self::HEADER_IP => $this->getRequest()->getServerParams()["REMOTE_ADDR"] ?? null,
+			self::HEADER_LAST_REQ => time()
+		];
 	}
 
 	/**
@@ -206,16 +233,16 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	{
 		// if the session is expired
 		if (($lastReq = $this->getLastRequestTimestamp())
-			&& ($lastReq + $this->config->getExpire() * 60) < time())
+			&& ($lastReq + $this->getExpire() * 60) < time())
 		{
 			return false;
 		}
 
 		// if the client IP changed
-		if ($this->config->getValidateClientIp()
+		if ($this->getValidateClientIp()
 			&& ($clientIp = $this->getClientIp())
-			&& isset($this->request->getServerParams()['REMOTE_ADDR'])
-			&& $clientIp != $this->request->getServerParams()['REMOTE_ADDR'])
+			&& isset($this->getRequest()->getServerParams()['REMOTE_ADDR'])
+			&& $clientIp != $this->getRequest()->getServerParams()['REMOTE_ADDR'])
 		{
 			return false;
 		}
@@ -279,7 +306,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	public function unsetData():void
 	{
 		foreach (array_keys($this->data) as $var) {
-			if (!in_array($var, self::HEADERS)) {
+			if (!in_array($var, self::ALL_HEADERS)) {
 				unset($this->data[$var]);
 			}
 		}
@@ -297,19 +324,19 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 			// envoie du cookie de session
 			if ($this->isStarted()) {
 				return new SetCookie(
-					$this->config->getName(),
+					$this->getName(),
 					$this->getId(),
-					(time() + $this->config->getExpire() * 60),
-					$this->config->getCookiePath() ?? "/",
-					$this->config->getCookieHost() ?? $this->request->getUri()->getHost(),
-					$this->config->getCookieSecure() ?? ($this->request->getUri()->getScheme() == "https"),
-					true
+					(time() + $this->getExpire() * 60),
+					$this->getCookiePath() ?? "/",
+					$this->getCookieHost() ?? $this->getRequest()->getUri()->getHost(),
+					$this->getCookieSecure() ?? ($this->getRequest()->getUri()->getScheme() == "https"),
+					$this->isCookieHttpOnly()
 				);
 			}
 
 			// si la session était lancée mais a été stoppée
-			elseif (isset($this->request->getCookieParams()[$this->config->getName()])) {
-				return SetCookie::thatDeletesCookie($this->config->getName());
+			elseif (isset($this->getRequest()->getCookieParams()[$this->getName()])) {
+				return SetCookie::thatDeletesCookie($this->getName());
 			}
 
 			return null;
@@ -318,6 +345,118 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 			throw new SessionManagerException("Error while preparing the session cookie",
 				$this, null, $exception);
 		}
+	}
+
+	/**
+	 * @param string $name
+	 */
+	public function setName(string $name):void
+	{
+		$this->name = $name;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName():string
+	{
+		return $this->name;
+	}
+
+	/**
+	 * @param int $expire
+	 */
+	public function setExpire(int $expire):void
+	{
+		$this->expire = $expire;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getExpire():int
+	{
+		return $this->expire;
+	}
+
+	/**
+	 * @param null|string $cookieHost
+	 */
+	public function setCookieHost(?string $cookieHost):void
+	{
+		$this->cookieHost = $cookieHost;
+	}
+
+	/**
+	 * @return null|string
+	 */
+	public function getCookieHost():?string
+	{
+		return $this->cookieHost;
+	}
+
+	/**
+	 * @param bool|null $cookieSecure
+	 */
+	public function setCookieSecure(?bool $cookieSecure):void
+	{
+		$this->cookieSecure = $cookieSecure;
+	}
+
+	/**
+	 * @return bool|null
+	 */
+	public function getCookieSecure():?bool
+	{
+		return $this->cookieSecure;
+	}
+
+	/**
+	 * @param null|string $cookiePath
+	 */
+	public function setCookiePath(?string $cookiePath):void
+	{
+		$this->cookiePath = $cookiePath;
+	}
+
+	/**
+	 * @param bool $cookieHttpOnly
+	 */
+	public function setCookieHttpOnly(bool $cookieHttpOnly):void
+	{
+		$this->cookieHttpOnly = $cookieHttpOnly;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isCookieHttpOnly():bool
+	{
+		return $this->cookieHttpOnly;
+	}
+
+	/**
+	 * @return null|string
+	 */
+	public function getCookiePath():?string
+	{
+		return $this->cookiePath;
+	}
+
+	/**
+	 * @param bool $validateClientIp
+	 */
+	public function setValidateClientIp(bool $validateClientIp):void
+	{
+		$this->validateClientIp = $validateClientIp;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getValidateClientIp():bool
+	{
+		return $this->validateClientIp;
 	}
 
 	/**
@@ -337,7 +476,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 */
 	public function offsetSet($offset, $value):void
 	{
-		if (in_array($offset, self::HEADERS)) {
+		if (in_array($offset, self::ALL_HEADERS)) {
 			throw new SessionManagerException(
 				sprintf("Unable to write the offset %s, this offset is reserved for the session manager",
 					$offset),
@@ -373,7 +512,7 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 */
 	public function offsetUnset($offset):void
 	{
-		if (in_array($offset, self::HEADERS)) {
+		if (in_array($offset, self::ALL_HEADERS)) {
 			throw new SessionManagerException(
 				sprintf("Unable to unset the offset %s, this offset is reserved for the session manager",
 					$offset),
