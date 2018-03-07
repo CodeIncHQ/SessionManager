@@ -38,20 +38,20 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	const REQ_SRV_ATTR = SessionManager::class;
 
 	/**
-	 * @var SessionManager
+	 * @var SessionConfig
 	 */
-	private $sessionManager;
+	protected $sessionConfig;
 
 	/**
 	 * SessionMiddleware constructor.
 	 *
-	 * @param SessionManager $session
+	 * @param SessionConfig $sessionConfig
 	 * @param null|MiddlewareInterface $nextMiddleware
 	 */
-	public function __construct(SessionManager $session, ?MiddlewareInterface $nextMiddleware = null)
+	public function __construct(SessionConfig $sessionConfig, ?MiddlewareInterface $nextMiddleware = null)
 	{
 		parent::__construct($nextMiddleware);
-		$this->sessionManager = $session;
+		$this->sessionConfig = $sessionConfig;
 	}
 
 	/**
@@ -63,19 +63,28 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler):ResponseInterface
 	{
 		// loading and attaching the session service
-		$this->sessionManager->start();
+		$sessionManager = $this->newSessionManager($request);
 
 		// processing
 		$response = parent::process(
-			$this->sessionManager->attacheToRequest($request),
+			$sessionManager->attacheToRequest($request),
 			$handler
 		);
 
 		// attaching the session cookie to the response
-		if ($sessionCookie = $this->sessionManager->getSessionCookie()) {
+		if ($sessionCookie = $sessionManager->getSessionCookie()) {
 			$response = $sessionCookie->addToResponse($response);
 		}
 
 		return $response;
+	}
+
+	/**
+	 * @param ServerRequestInterface $request
+	 * @return SessionManager
+	 */
+	protected function newSessionManager(ServerRequestInterface $request):SessionManager
+	{
+		return new SessionManager($request, $this->sessionConfig);
 	}
 }
