@@ -22,6 +22,7 @@
 declare(strict_types = 1);
 namespace CodeInc\Session\Middleware;
 use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
+use CodeInc\Session\Manager\SessionManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -77,5 +78,16 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Detaches the session manager from a server request.
+	 *
+	 * @param ServerRequestInterface $request
+	 * @return SessionManager|null
+	 */
+	public static function detachSessionManager(ServerRequestInterface $request):?SessionManager
+	{
+		return $request->getAttribute(self::REQ_ATTR, null);
 	}
 }
