@@ -16,7 +16,7 @@
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     08/03/2018
-// Time:     17:08
+// Time:     17:07
 // Project:  lib-session
 //
 declare(strict_types = 1);
@@ -26,32 +26,17 @@ use Psr\Http\Message\ServerRequestInterface;
 
 
 /**
- * Class DefaultMiddlewareInstantiator
+ * Interface SessionManagerInstantiatorInterface
  *
- * @package CodeInc\Session
+ * @package CodeInc\Session\Middleware
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionMiddlewareInstantiator implements SessionMiddlewareInstantiatorInterface {
+interface SessionManagerInstantiatorInterface {
 	/**
-	 * @var \SessionHandlerInterface
-	 */
-	private $sessionHandler;
-
-	/**
-	 * DefaultSessionMiddlewareInstantiator constructor.
+	 * Intantiates and returns a session manager for a given request.
 	 *
-	 * @param \SessionHandlerInterface $sessionHandler
+	 * @param ServerRequestInterface $request
+	 * @return SessionManager
 	 */
-	public function __construct(\SessionHandlerInterface $sessionHandler)
-	{
-		$this->sessionHandler = $sessionHandler;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public function instantiate(ServerRequestInterface $request):SessionManager
-	{
-		return new SessionManager($request, $this->sessionHandler);
-	}
+	public function instantiate(ServerRequestInterface $request):SessionManager;
 }

@@ -38,7 +38,7 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	public const REQ_ATTR = '__sessionManager';
 
 	/**
-	 * @var SessionMiddlewareInstantiatorInterface
+	 * @var SessionManagerInstantiatorInterface
 	 */
 	private $instantiator;
 
@@ -46,9 +46,9 @@ class SessionMiddleware extends AbstractRecursiveMiddleware {
 	 * SessionMiddleware constructor.
 	 *
 	 * @param null|MiddlewareInterface $nextMiddleware
-	 * @param SessionMiddlewareInstantiatorInterface|null $instantiator
+	 * @param SessionManagerInstantiatorInterface|null $instantiator
 	 */
-	public function __construct(SessionMiddlewareInstantiatorInterface $instantiator,
+	public function __construct(SessionManagerInstantiatorInterface $instantiator,
 		?MiddlewareInterface $nextMiddleware = null)
 	{
 		parent::__construct($nextMiddleware);
