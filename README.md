@@ -37,8 +37,10 @@ use CodeInc\Session\Middleware\SessionMiddlewareInstantiator;
 // a PST-15 middleware is provided to attach to session manager to the request object
 // and to send out the session cookie by attaching them to the PSR-7 response.
 $middleware = new SessionMiddleware(
-	// receives the instantiator which can be custom design (by implementing `SessionMiddlewareInstantiatorInterface`)
-	// if the session manager requires a specific configuration you can also use the default instantiator which just
+	// receives the instantiator which can be custom designed
+	// (by implementing `SessionMiddlewareInstantiatorInterface`)
+	// if the session manager requires a specific configuration you
+	// can also use the default instantiator which just
 	// needs the session handler (implementing \SessionHandlerInterface)
 	new SessionMiddlewareInstantiator(new MySessionHandler) 
 );
