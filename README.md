@@ -28,20 +28,20 @@ foreach ($sessionManager as $var => $value) {
 }
 ```
 
-### Middleware 
+### Middleware
+A [PSR-15](https://www.php-fig.org/psr/psr-15/) [middleware](https://www.php-fig.org/psr/psr-15/#22-psrhttpservermiddlewareinterface) `SessionMiddleware` is provided to attach to session manager to the request object and to send out the session cookie by attaching them to the PSR-7 response. The cookie is only attached to `text/html` responses. 
+
+The Middleware needs a instantiator in order to instantiate the session manager. A default istantiator `SessionMiddlewareInstantiator` is provided. You also can design your own instantiator by implementing `SessionMiddlewareInstantiatorInterface`.
+ 
 ```php
 <?php
 use CodeInc\Session\Middleware\SessionMiddleware;
 use CodeInc\Session\Middleware\SessionMiddlewareInstantiator;
 
-// a PST-15 middleware is provided to attach to session manager to the request object
-// and to send out the session cookie by attaching them to the PSR-7 response.
 $middleware = new SessionMiddleware(
-	// receives the instantiator which can be custom designed
-	// (by implementing `SessionMiddlewareInstantiatorInterface`)
-	// if the session manager requires a specific configuration you
-	// can also use the default instantiator which just
-	// needs the session handler (implementing \SessionHandlerInterface)
+	// receives the instantiator either a custom built instantiator or the provided one
+	// which just requires the session handler (implementing \SessionHandlerInterface)
+	// to work
 	new SessionMiddlewareInstantiator(new MySessionHandler) 
 );
 $psr7Response = $middleware->process(
