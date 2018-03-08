@@ -20,7 +20,8 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session;
+namespace CodeInc\Session\Manager;
+use CodeInc\Session\SessionException;
 use Throwable;
 
 
@@ -30,7 +31,7 @@ use Throwable;
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManagerException extends \Exception {
+class SessionManagerException extends SessionException {
 	/**
 	 * @var SessionManager|null
 	 */
@@ -44,11 +45,11 @@ class SessionManagerException extends \Exception {
 	 * @param int|null $code
 	 * @param null|Throwable $previous
 	 */
-	public function __construct(string $message = "", ?SessionManager $sessionManager = null,
+	public function __construct(string $message, ?SessionManager $sessionManager = null,
 		?int $code = null, ?Throwable $previous = null)
 	{
 		$this->sessionManager = $sessionManager;
-		parent::__construct($message, $code ?? 0, $previous);
+		parent::__construct($message, $code, $previous);
 	}
 
 	/**

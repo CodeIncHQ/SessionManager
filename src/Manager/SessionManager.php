@@ -20,7 +20,7 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session;
+namespace CodeInc\Session\Manager;
 use HansOtt\PSR7Cookies\SetCookie;
 use Psr\Http\Message\ServerRequestInterface;
 
