@@ -34,6 +34,9 @@
       "*": "dist"
     }
   },
+  "suggest": {
+    "codeinchq/lib-doctrinesessionhandler": "Provides a session handler storing the session data in a database using Doctrine's EntityManager"
+  },
   "repositories": [
     { "type": "vcs", "url": "https://github.com/codeinchq/lib-psr15middlewares" }
   ]
