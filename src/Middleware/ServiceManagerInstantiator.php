@@ -64,6 +64,6 @@ class ServiceManagerInstantiator implements InstantiatorInterface, ServiceInterf
         if (!$this->serviceManager->hasInstance(ServerRequestInterface::class)) {
             $this->serviceManager->addService($request);
         }
-        return $this->serviceManager->getInstance(ServiceManager::class);
+        return $this->serviceManager->getInstance(SessionManager::class);
     }
 }
