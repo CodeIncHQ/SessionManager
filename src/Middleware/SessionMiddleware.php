@@ -20,9 +20,9 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session;
+namespace CodeInc\Session\Middleware;
 use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
-use CodeInc\ServiceManager\ServiceManager;
+use CodeInc\Session\SessionManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -40,21 +40,21 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
 	public const REQ_ATTR = '__sessionManager';
 
 	/**
-	 * @var ServiceManager
+	 * @var InstantiatorInterface
 	 */
-	private $serviceManager;
+	private $instantiator;
 
     /**
      * SessionMiddleware constructor.
      *
-     * @param ServiceManager $serviceManager
+     * @param InstantiatorInterface $instantiator
      * @param null|MiddlewareInterface $nextMiddleware
      */
-	public function __construct(ServiceManager $serviceManager,
+	public function __construct(InstantiatorInterface $instantiator,
         ?MiddlewareInterface $nextMiddleware = null)
 	{
 		parent::__construct($nextMiddleware);
-		$this->serviceManager = $serviceManager;
+		$this->instantiator = $instantiator;
 	}
 
 	/**
@@ -66,7 +66,7 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
 	{
 		// starts the session
         /** @var SessionManager $sessionManager */
-		$sessionManager = $this->serviceManager->getService(SessionManager::class);
+		$sessionManager = $this->instantiator->instantiate($request);
 		$sessionManager->start();
 
 		// processes the response
