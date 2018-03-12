@@ -37,12 +37,12 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class SessionMiddleware extends AbstractRecursiveMiddleware
 {
-	public const REQ_ATTR = '__sessionManager';
+    public const REQ_ATTR = '__sessionManager';
 
-	/**
-	 * @var Instantiator
-	 */
-	private $instantiator;
+    /**
+     * @var Instantiator
+     */
+    private $instantiator;
 
     /**
      * SessionMiddleware constructor.
@@ -50,21 +50,21 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
      * @param Instantiator $instantiator
      * @param null|MiddlewareInterface $nextMiddleware
      */
-	public function __construct(Instantiator $instantiator,
+    public function __construct(Instantiator $instantiator,
         ?MiddlewareInterface $nextMiddleware = null)
-	{
-		parent::__construct($nextMiddleware);
-		$this->instantiator = $instantiator;
-	}
+    {
+        parent::__construct($nextMiddleware);
+        $this->instantiator = $instantiator;
+    }
 
-	/**
-	 * @inheritdoc
-	 * @throws \CodeInc\Session\Exceptions\SessionManagerException
-	 */
-	public function process(ServerRequestInterface $request,
+    /**
+     * @inheritdoc
+     * @throws \CodeInc\Session\Exceptions\SessionManagerException
+     */
+    public function process(ServerRequestInterface $request,
         RequestHandlerInterface $handler):ResponseInterface
-	{
-	    // adds the request within the instantiator stack
+    {
+        // adds the request within the instantiator stack
         if (!$this->instantiator->hasInstance(ServerRequestInterface::class)) {
             $this->instantiator->addInstance($request);
         }
@@ -72,21 +72,21 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
         // get the session manager and starts the session if not started
         $sessionManager = $this->instantiator->getInstance(SessionManager::class);
         /** @var SessionManager $sessionManager */
-		if ($sessionManager->isStarted()) {
+        if (!$sessionManager->isStarted()) {
             $sessionManager->start();
         }
 
-		// processes the response
-		$response = parent::process(
-			$request->withAttribute(self::REQ_ATTR, $sessionManager),
-			$handler
-		);
+        // processes the response
+        $response = parent::process(
+            $request->withAttribute(self::REQ_ATTR, $sessionManager),
+            $handler
+        );
 
-		// if the response is a HTML page, attaches the cookie
-		if (preg_match("#^text/html#ui", $response->getHeaderLine("Content-Type"))) {
-			$response = $sessionManager->getSessionCookie()->addToResponse($response);
-		}
+        // if the response is a HTML page, attaches the cookie
+        if (preg_match("#^text/html#ui", $response->getHeaderLine("Content-Type"))) {
+            $response = $sessionManager->getSessionCookie()->addToResponse($response);
+        }
 
-		return $response;
-	}
+        return $response;
+    }
 }
