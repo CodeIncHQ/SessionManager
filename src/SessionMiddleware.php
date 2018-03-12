@@ -20,9 +20,9 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Middleware;
+namespace CodeInc\Session;
 use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
-use CodeInc\Session\Manager\SessionManager;
+use CodeInc\ServiceManager\ServiceManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -35,35 +35,38 @@ use Psr\Http\Server\RequestHandlerInterface;
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionMiddleware extends AbstractRecursiveMiddleware {
+class SessionMiddleware extends AbstractRecursiveMiddleware
+{
 	public const REQ_ATTR = '__sessionManager';
 
 	/**
-	 * @var SessionManagerInstantiatorInterface
+	 * @var ServiceManager
 	 */
-	private $instantiator;
+	private $serviceManager;
 
-	/**
-	 * SessionMiddleware constructor.
-	 *
-	 * @param null|MiddlewareInterface $nextMiddleware
-	 * @param SessionManagerInstantiatorInterface|null $instantiator
-	 */
-	public function __construct(SessionManagerInstantiatorInterface $instantiator,
-		?MiddlewareInterface $nextMiddleware = null)
+    /**
+     * SessionMiddleware constructor.
+     *
+     * @param ServiceManager $serviceManager
+     * @param null|MiddlewareInterface $nextMiddleware
+     */
+	public function __construct(ServiceManager $serviceManager,
+        ?MiddlewareInterface $nextMiddleware = null)
 	{
 		parent::__construct($nextMiddleware);
-		$this->instantiator = $instantiator;
+		$this->serviceManager = $serviceManager;
 	}
 
 	/**
 	 * @inheritdoc
-	 * @throws \CodeInc\Session\Manager\SessionManagerException
+	 * @throws \CodeInc\Session\Exceptions\SessionManagerException
 	 */
-	public function process(ServerRequestInterface $request, RequestHandlerInterface $handler):ResponseInterface
+	public function process(ServerRequestInterface $request,
+        RequestHandlerInterface $handler):ResponseInterface
 	{
 		// starts the session
-		$sessionManager = $this->instantiator->instantiate($request);
+        /** @var SessionManager $sessionManager */
+		$sessionManager = $this->serviceManager->getService(SessionManager::class);
 		$sessionManager->start();
 
 		// processes the response

@@ -6,7 +6,7 @@ Saving and writting the session goes through a session handler implementing the 
 ## Usage 
 ```php
 <?php
-use CodeInc\Session\Manager\SessionManager;
+use CodeInc\Session\SessionManager;
 
 // the session manager need the request object and a session handler to start
 $sessionManager = new SessionManager(
@@ -31,19 +31,19 @@ foreach ($sessionManager as $var => $value) {
 ### Middleware
 A [PSR-15](https://www.php-fig.org/psr/psr-15/) [middleware](https://www.php-fig.org/psr/psr-15/#22-psrhttpservermiddlewareinterface) `SessionMiddleware` is provided to attach to session manager to the request object and to send out the session cookie by attaching them to the PSR-7 response. The cookie is only attached to `text/html` responses. 
 
-The Middleware needs a instantiator in order to instantiate the session manager. A default istantiator `SessionMiddlewareInstantiator` is provided. You also can design your own instantiator by implementing `SessionMiddlewareInstantiatorInterface`.
+The Middleware uses the ServiceManager class (from the [`lib-sessionmanager`](https://github.com/CodeIncHq/lib-servicemanager)) to access the `SessionManager` service. 
  
 ```php
 <?php
-use CodeInc\Session\Middleware\SessionMiddleware;
-use CodeInc\Session\Middleware\SessionMiddlewareInstantiator;
+use CodeInc\Session\SessionMiddleware;
+use CodeInc\ServiceManager\ServiceManager;
 
-$middleware = new SessionMiddleware(
-	// receives the instantiator either a custom built instantiator or the provided one
-	// which just requires the session handler (implementing \SessionHandlerInterface)
-	// to work
-	new SessionMiddlewareInstantiator(new MySessionHandler) 
-);
+// the middleware needs the service manager 
+$serviceManager = new ServiceManager();
+$serviceManager->addService($psr7ServerRequest);
+
+// instantiating the middleware and processing the PSR-7 request, producing a PSR-7 response
+$middleware = new SessionMiddleware($serviceManager);
 $psr7Response = $middleware->process(
 	$psr7ServerRequest, 
 	$somePsr15RequestHandler

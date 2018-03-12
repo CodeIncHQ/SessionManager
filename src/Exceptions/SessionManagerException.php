@@ -15,28 +15,52 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     08/03/2018
-// Time:     17:07
+// Date:     04/03/2018
+// Time:     13:12
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Middleware;
-use CodeInc\Session\Manager\SessionManager;
-use Psr\Http\Message\ServerRequestInterface;
+namespace CodeInc\Session\Exceptions;
+use CodeInc\Session\SessionManager;
+use Throwable;
 
 
 /**
- * Interface SessionManagerInstantiatorInterface
+ * Class SessionManagerException
  *
- * @package CodeInc\Session\Middleware
+ * @package CodeInc\Session\Exceptions
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-interface SessionManagerInstantiatorInterface {
+class SessionManagerException extends \Exception
+{
 	/**
-	 * Intantiates and returns a session manager for a given request.
-	 *
-	 * @param ServerRequestInterface $request
-	 * @return SessionManager
+	 * @var SessionManager|null
 	 */
-	public function instantiate(ServerRequestInterface $request):SessionManager;
+	private $sessionManager;
+
+	/**
+	 * SessionException constructor.
+	 *
+	 * @param string $message
+	 * @param SessionManager|null $sessionManager
+	 * @param int|null $code
+	 * @param null|Throwable $previous
+	 */
+	public function __construct(
+		string $message,
+		?SessionManager $sessionManager = null,
+		?int $code = null,
+		?Throwable $previous = null
+	) {
+		$this->sessionManager = $sessionManager;
+		parent::__construct($message, $code ?? 0, $previous);
+	}
+
+	/**
+	 * @return SessionManager|null
+	 */
+	public function getSessionManager():?SessionManager
+	{
+		return $this->sessionManager;
+	}
 }

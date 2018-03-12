@@ -20,7 +20,10 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Manager;
+namespace CodeInc\Session;
+use CodeInc\ServiceManager\ServiceInterface;
+use CodeInc\Session\Exceptions\ReservedOffsetException;
+use CodeInc\Session\Exceptions\SessionManagerException;
 use HansOtt\PSR7Cookies\SetCookie;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -31,11 +34,16 @@ use Psr\Http\Message\ServerRequestInterface;
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManager implements \IteratorAggregate, \ArrayAccess {
+class SessionManager implements ServiceInterface, \IteratorAggregate, \ArrayAccess
+{
 	public const HEADER_IP = "__clientIp";
 	public const HEADER_LAST_REQ = "__lastRequest";
 	public const HEADER_CLEAN_UP = "__cleanUp";
-	private const ALL_HEADERS = [self::HEADER_IP, self::HEADER_LAST_REQ, self::HEADER_CLEAN_UP];
+	private const ALL_HEADERS = [
+		self::HEADER_IP,
+		self::HEADER_LAST_REQ,
+		self::HEADER_CLEAN_UP
+	];
 
 	public const DEFAULT_NAME = "SID";
 	public const DEFAULT_EXPIRE = 60;
@@ -123,8 +131,9 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 	 * @param null|string $name
 	 * @param int|null $expire
 	 */
-	public function __construct(ServerRequestInterface $request, \SessionHandlerInterface $handler,
-		?string $name = null, ?int $expire = null)
+	public function __construct(ServerRequestInterface $request,
+		\SessionHandlerInterface $handler, ?string $name = null,
+		?int $expire = null)
 	{
 		$this->request = $request;
 		$this->handler = $handler;
@@ -195,13 +204,16 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 			}
 		}
 		catch (\Throwable $exception) {
-			throw new SessionManagerException("Error while starting the session",
-				$this, null, $exception);
+			throw new SessionManagerException(
+				"Error while starting the session",
+				$this, null, $exception
+			);
 		}
 	}
 
 	/**
-	 * Stops the session. All session data are destroyed in memory and on the storage unit through the handler.
+	 * Stops the session. All session data are destroyed in memory and on the
+	 * storage unit through the handler.
 	 */
 	public function stop():void
 	{
@@ -328,8 +340,10 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 					$this->getId(),
 					(time() + $this->getExpire() * 60),
 					$this->getCookiePath() ?? "/",
-					$this->getCookieHost() ?? $this->getRequest()->getUri()->getHost(),
-					$this->getCookieSecure() ?? ($this->getRequest()->getUri()->getScheme() == "https"),
+					$this->getCookieHost()
+						?? $this->getRequest()->getUri()->getHost(),
+					$this->getCookieSecure()
+						?? ($this->getRequest()->getUri()->getScheme() == "https"),
 					$this->isCookieHttpOnly()
 				);
 			}
@@ -342,8 +356,10 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 			return null;
 		}
 		catch (\Throwable $exception) {
-			throw new SessionManagerException("Error while preparing the session cookie",
-				$this, null, $exception);
+			throw new SessionManagerException(
+				"Error while preparing the session cookie",
+				$this, null, $exception
+			);
 		}
 	}
 
@@ -470,18 +486,12 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 
 	/**
 	 * @inheritdoc
-	 * @param mixed $offset
-	 * @param mixed $value
-	 * @throws SessionManagerException
+	 * @throws ReservedOffsetException
 	 */
 	public function offsetSet($offset, $value):void
 	{
 		if (in_array($offset, self::ALL_HEADERS)) {
-			throw new SessionManagerException(
-				sprintf("Unable to write the offset %s, this offset is reserved for the session manager",
-					$offset),
-				$this
-			);
+			throw new ReservedOffsetException($offset, $this);
 		}
 		$this->data[$offset] = $value;
 	}
@@ -508,16 +518,12 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess {
 
 	/**
 	 * @inheritdoc
-	 * @param mixed $offset
+	 * @throws ReservedOffsetException
 	 */
 	public function offsetUnset($offset):void
 	{
 		if (in_array($offset, self::ALL_HEADERS)) {
-			throw new SessionManagerException(
-				sprintf("Unable to unset the offset %s, this offset is reserved for the session manager",
-					$offset),
-				$this
-			);
+			throw new ReservedOffsetException($offset, $this);
 		}
 		unset($this->data[$offset]);
 	}
