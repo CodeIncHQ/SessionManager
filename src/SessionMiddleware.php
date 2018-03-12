@@ -20,9 +20,9 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Middleware;
+namespace CodeInc\Session;
+use CodeInc\Instantiator\Instantiator;
 use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
-use CodeInc\Session\SessionManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -40,17 +40,17 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
 	public const REQ_ATTR = '__sessionManager';
 
 	/**
-	 * @var InstantiatorInterface
+	 * @var Instantiator
 	 */
 	private $instantiator;
 
     /**
      * SessionMiddleware constructor.
      *
-     * @param InstantiatorInterface $instantiator
+     * @param Instantiator $instantiator
      * @param null|MiddlewareInterface $nextMiddleware
      */
-	public function __construct(InstantiatorInterface $instantiator,
+	public function __construct(Instantiator $instantiator,
         ?MiddlewareInterface $nextMiddleware = null)
 	{
 		parent::__construct($nextMiddleware);
@@ -64,10 +64,17 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
 	public function process(ServerRequestInterface $request,
         RequestHandlerInterface $handler):ResponseInterface
 	{
-		// starts the session
+	    // adds the request within the instantiator stack
+        if (!$this->instantiator->hasInstance(ServerRequestInterface::class)) {
+            $this->instantiator->addInstance($request);
+        }
+
+        // get the session manager and starts the session if not started
+        $sessionManager = $this->instantiator->getInstance(SessionManager::class);
         /** @var SessionManager $sessionManager */
-		$sessionManager = $this->instantiator->instantiate($request);
-		$sessionManager->start();
+		if ($sessionManager->isStarted()) {
+            $sessionManager->start();
+        }
 
 		// processes the response
 		$response = parent::process(
@@ -81,16 +88,5 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
 		}
 
 		return $response;
-	}
-
-	/**
-	 * Detaches the session manager from a server request.
-	 *
-	 * @param ServerRequestInterface $request
-	 * @return SessionManager|null
-	 */
-	public static function detachSessionManager(ServerRequestInterface $request):?SessionManager
-	{
-		return $request->getAttribute(self::REQ_ATTR, null);
 	}
 }
