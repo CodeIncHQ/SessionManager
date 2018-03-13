@@ -86,7 +86,8 @@ class SessionDataHolder implements \IteratorAggregate, \ArrayAccess
      * @return SessionDataHolder
      * @throws \Exception
      */
-    public static function factory(SessionManager $sessionManager, ServerRequestInterface $request):SessionDataHolder
+    public static function factory(SessionManager $sessionManager,
+        ServerRequestInterface $request):SessionDataHolder
     {
         return new SessionDataHolder($sessionManager, bin2hex(random_bytes(32)), [
             self::HEADER_IP => $request->getServerParams()["REMOTE_ADDR"] ?? null,

@@ -46,12 +46,12 @@ class SessionManager
     private $handler;
 
     /**
-     * Session object
+     * Session data holder
      *
-     * @see SessionManager::getSession()
+     * @see SessionManager::getDataHolder()
      * @var SessionDataHolder|null
      */
-    private $session;
+    private $dataHolder;
 
     /**
 	 * Session name
@@ -122,15 +122,14 @@ class SessionManager
 	 */
 	public function __destruct()
 	{
-		if ($session = $this->getSession()) {
+		if ($dataHolder = $this->getDataHolder()) {
 		    // saving the session
-			$session->updateLastRequestTime();
-            $this->getHandler()->write($session->getId(), $session->getData());
+			$dataHolder->updateLastRequestTime();
+            $this->getHandler()->write($dataHolder->getId(), $dataHolder->getData());
 
             // one time on 100 we delete the expired sessions
 			if (rand(1, 100) == 50) {
 				$this->getHandler()->cleanup($this->getExpire() * 60);
-				$session[$session::HEADER_CLEAN_UP] = true;
 			}
 		}
 	}
@@ -156,27 +155,27 @@ class SessionManager
 			    $id = $request->getCookieParams()[$this->getName()];
                 // the session is not valid = we delete the previous one and create a new one.
 				if (($data = $this->getHandler()->read($id)) !== null) {
-				    $this->session = new SessionDataHolder($this, $id, $data);
+				    $this->dataHolder = new SessionDataHolder($this, $id, $data);
 				    // if the session is invalid, we destroy the previous one and create a new one
-				    if (!$this->isSessionValid($this->session, $request)) {
+				    if (!$this->isSessionValid($this->dataHolder, $request)) {
                         $this->getHandler()->destroy($id);
-                        $this->session = SessionDataHolder::factory($this, $request);
+                        $this->dataHolder = SessionDataHolder::factory($this, $request);
                     }
 				}
 
 				// if the session can not be loaded, we create a new one
 				else {
                     $this->getHandler()->destroy($id);
-                    $this->session = SessionDataHolder::factory($this, $request);
+                    $this->dataHolder = SessionDataHolder::factory($this, $request);
                 }
 			}
 
 			// else creating the session
 			else {
-                $this->session = SessionDataHolder::factory($this, $request);
+                $this->dataHolder = SessionDataHolder::factory($this, $request);
 			}
 
-			return $this->session;
+			return $this->dataHolder;
 		}
 		catch (\Throwable $exception) {
 			throw new SessionManagerException(
@@ -197,7 +196,7 @@ class SessionManager
     {
         // if the session is expired
         if (($lastReq = $session->getLastRequestTime())
-            && ($lastReq + $session->getSessionManager()->getExpire() * 60) < time())
+            && ($lastReq + $this->getExpire() * 60) < time())
         {
             return false;
         }
@@ -224,7 +223,7 @@ class SessionManager
     {
         try {
             // envoie du cookie de session
-            if ($session = $this->getSession()) {
+            if ($session = $this->getDataHolder()) {
                 return new SetCookie(
                     $this->getName(),
                     $session->getId(),
@@ -255,9 +254,9 @@ class SessionManager
 	 */
 	public function stop():void
 	{
-		if ($session = $this->getSession()) {
+		if ($session = $this->getDataHolder()) {
 			$this->getHandler()->destroy($session->getId());
-			$this->session = null;
+			$this->dataHolder = null;
 		}
 	}
 
@@ -268,17 +267,17 @@ class SessionManager
 	 */
 	public function isStarted():bool
 	{
-		return $this->getSession() !== null;
+		return $this->getDataHolder() !== null;
 	}
 
     /**
-     * Returns the current session.
+     * Returns the current session data holder.
      *
      * @return SessionDataHolder|null
      */
-    public function getSession():?SessionDataHolder
+    public function getDataHolder():?SessionDataHolder
     {
-        return $this->session;
+        return $this->dataHolder;
     }
 
 	/**
