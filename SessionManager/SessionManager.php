@@ -20,10 +20,10 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session;
-use CodeInc\Session\Exceptions\NoSessionStartedException;
-use CodeInc\Session\Exceptions\SessionManagerException;
-use CodeInc\Session\Handlers\HandlerInterface;
+namespace CodeInc\SessionManager;
+use CodeInc\SessionManager\Exceptions\NoSessionStartedException;
+use CodeInc\SessionManager\Exceptions\SessionManagerException;
+use CodeInc\SessionManager\Handlers\HandlerInterface;
 use HansOtt\PSR7Cookies\SetCookie;
 use Psr\Http\Message\ServerRequestInterface;
 

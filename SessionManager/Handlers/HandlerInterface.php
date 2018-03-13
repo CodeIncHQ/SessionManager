@@ -20,7 +20,7 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Handlers;
+namespace CodeInc\SessionManager\Handlers;
 
 
 /**

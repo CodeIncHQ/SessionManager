@@ -15,37 +15,52 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     13/03/2018
-// Time:     13:49
+// Date:     04/03/2018
+// Time:     13:12
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionManager;
+namespace CodeInc\SessionManager\Exceptions;
+use CodeInc\SessionManager\SessionManager;
 use Throwable;
 
 
 /**
- * Class NoSessionStartedException
+ * Class SessionManagerException
  *
  * @package CodeInc\Session\Exceptions
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class NoSessionStartedException extends SessionManagerException
+class SessionManagerException extends SessionException
 {
-    /**
-     * NoSessionStartedException constructor.
-     *
-     * @param SessionManager|null $sessionManager
-     * @param int|null $code
-     * @param null|Throwable $previous
-     */
-    public function __construct(?SessionManager $sessionManager = null,
-        ?int $code = null, ?Throwable $previous = null)
-    {
-        parent::__construct(
-            "No session is started, unable to return the session data holder.",
-            $sessionManager, $code, $previous
-        );
-    }
+	/**
+	 * @var SessionManager|null
+	 */
+	private $sessionManager;
+
+	/**
+	 * SessionException constructor.
+	 *
+	 * @param string $message
+	 * @param SessionManager|null $sessionManager
+	 * @param int|null $code
+	 * @param null|Throwable $previous
+	 */
+	public function __construct(
+		string $message,
+		?SessionManager $sessionManager = null,
+		?int $code = null,
+		?Throwable $previous = null
+	) {
+		$this->sessionManager = $sessionManager;
+		parent::__construct($message, $code, $previous);
+	}
+
+	/**
+	 * @return SessionManager|null
+	 */
+	public function getSessionManager():?SessionManager
+	{
+		return $this->sessionManager;
+	}
 }

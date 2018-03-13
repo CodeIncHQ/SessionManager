@@ -20,9 +20,9 @@
 // Project:  lib-doctrinesessionhandler
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Handlers\Doctrine;
-use CodeInc\Session\Handlers\HandlerInterface;
-use CodeInc\Session\Exceptions\HandlerException;
+namespace CodeInc\SessionManager\Handlers\Doctrine;
+use CodeInc\SessionManager\Handlers\HandlerInterface;
+use CodeInc\SessionManager\Exceptions\HandlerException;
 use Doctrine\ORM\EntityManager;
 
 /**

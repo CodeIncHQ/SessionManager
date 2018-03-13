@@ -16,48 +16,89 @@
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     08/03/2018
-// Time:     17:31
+// Time:     17:43
 // Project:  lib-doctrinesessionhandler
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\Handlers\HandlerInterface;
-use Throwable;
+namespace CodeInc\SessionManager\Handlers\Doctrine;
+use Doctrine\ORM\Mapping as ORM;
 
 
 /**
- * Class HandlerException
+ * Class SessionDataEntity
  *
- * @package CodeInc\Session\Handlers
+ * @ORM\MappedSuperclass()
+ * @package CodeInc\DoctrineSessionHandler
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class HandlerException extends \Exception
-{
+class SessionDataEntity {
 	/**
-	 * @var HandlerInterface
+	 * @ORM\Id()
+	 * @ORM\Column(type="string")
+	 * @var string
 	 */
-	private $handler;
+	private $id;
+
+	/**
+	 * @ORM\Column(type="datetime")
+	 * @var \DateTime
+	 */
+	private $lastHit;
+
+	/**
+	 * @ORM\Column(type="array")
+	 * @var array
+	 */
+	private $data;
 
     /**
-     * SessionHandlerException constructor.
+     * SessionDataEntity constructor.
      *
-     * @param string $message
-     * @param HandlerInterface $handler
-     * @param int|null $code
-     * @param null|Throwable $previous
+     * @param string $id
      */
-	public function __construct(string $message, HandlerInterface $handler,
-		?int $code = null, ?Throwable $previous = null)
-	{
-		$this->handler = $handler;
-		parent::__construct($message, $code, $previous);
-	}
+	public function __construct(string $id)
+    {
+        $this->id = $id;
+        $this->updateLastHit();
+    }
 
     /**
-     * @return HandlerInterface
+     * @param string $id
      */
-    public function getHandler():HandlerInterface
+    public function setId(string $id):void
     {
-        return $this->handler;
+        $this->id = $id;
     }
+
+    /**
+     * @return string
+     */
+    public function getId():string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param array $data
+     */
+    public function setData(array $data):void
+    {
+        $this->data = $data;
+    }
+
+    /**
+     * @return array
+     */
+    public function getData():array
+    {
+        return $this->data;
+    }
+
+    /**
+     * Updates the last hit timestmap.
+     */
+	public function updateLastHit():void
+	{
+		$this->lastHit = new \DateTime('now');
+	}
 }
