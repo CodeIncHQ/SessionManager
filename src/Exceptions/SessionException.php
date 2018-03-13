@@ -15,52 +15,33 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     04/03/2018
-// Time:     13:12
+// Date:     13/03/2018
+// Time:     12:35
 // Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionManager;
 use Throwable;
 
 
 /**
- * Class SessionManagerException
+ * Class SessionExceptyion
  *
  * @package CodeInc\Session\Exceptions
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManagerException extends SessionException
+class SessionException extends \Exception
 {
-	/**
-	 * @var SessionManager|null
-	 */
-	private $sessionManager;
-
-	/**
-	 * SessionException constructor.
-	 *
-	 * @param string $message
-	 * @param SessionManager|null $sessionManager
-	 * @param int|null $code
-	 * @param null|Throwable $previous
-	 */
-	public function __construct(
-		string $message,
-		?SessionManager $sessionManager = null,
-		?int $code = null,
-		?Throwable $previous = null
-	) {
-		$this->sessionManager = $sessionManager;
-		parent::__construct($message, $code, $previous);
-	}
-
-	/**
-	 * @return SessionManager|null
-	 */
-	public function getSessionManager():?SessionManager
-	{
-		return $this->sessionManager;
-	}
+    /**
+     * SessionException constructor.
+     *
+     * @param string $message
+     * @param int|null $code
+     * @param null|Throwable $previous
+     */
+    public function __construct(string $message, ?int $code = null,
+        ?Throwable $previous = null)
+    {
+        parent::__construct($message, $code ?? 0, $previous);
+    }
 }
