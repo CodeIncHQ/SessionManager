@@ -93,13 +93,13 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
      * Returns the session object attached to a request.
      *
      * @param ServerRequestInterface $request
-     * @return Session
+     * @return SessionDataHolder
      * @throws SessionMiddlewareException
      */
-    public static function getSession(ServerRequestInterface $request):Session
+    public static function getSession(ServerRequestInterface $request):SessionDataHolder
     {
         $session = $request->getAttribute(static::REQ_ATTR);
-        if (!$session instanceof Session) {
+        if (!$session instanceof SessionDataHolder) {
             throw new SessionMiddlewareException(
                 "No session object is available in the request attributes"
             );

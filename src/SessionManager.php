@@ -49,7 +49,7 @@ class SessionManager
      * Session object
      *
      * @see SessionManager::getSession()
-     * @var Session|null
+     * @var SessionDataHolder|null
      */
     private $session;
 
@@ -145,10 +145,10 @@ class SessionManager
 
     /**
      * @param ServerRequestInterface $request
-     * @return Session
+     * @return SessionDataHolder
      * @throws SessionManagerException
      */
-	public function start(ServerRequestInterface $request):Session
+	public function start(ServerRequestInterface $request):SessionDataHolder
 	{
 		try {
             // if the session exists, loading it!
@@ -156,24 +156,24 @@ class SessionManager
 			    $id = $request->getCookieParams()[$this->getName()];
                 // the session is not valid = we delete the previous one and create a new one.
 				if (($data = $this->getHandler()->read($id)) !== null) {
-				    $this->session = new Session($this, $id, $data);
+				    $this->session = new SessionDataHolder($this, $id, $data);
 				    // if the session is invalid, we destroy the previous one and create a new one
 				    if (!$this->isSessionValid($this->session, $request)) {
                         $this->getHandler()->destroy($id);
-                        $this->session = Session::factory($this, $request);
+                        $this->session = SessionDataHolder::factory($this, $request);
                     }
 				}
 
 				// if the session can not be loaded, we create a new one
 				else {
                     $this->getHandler()->destroy($id);
-                    $this->session = Session::factory($this, $request);
+                    $this->session = SessionDataHolder::factory($this, $request);
                 }
 			}
 
 			// else creating the session
 			else {
-                $this->session = Session::factory($this, $request);
+                $this->session = SessionDataHolder::factory($this, $request);
 			}
 
 			return $this->session;
@@ -189,11 +189,11 @@ class SessionManager
     /**
      * Verifies if a session is valid
      *
-     * @param Session $session
+     * @param SessionDataHolder $session
      * @param ServerRequestInterface $request
      * @return bool
      */
-    private function isSessionValid(Session $session, ServerRequestInterface $request):bool
+    private function isSessionValid(SessionDataHolder $session, ServerRequestInterface $request):bool
     {
         // if the session is expired
         if (($lastReq = $session->getLastRequestTime())
@@ -274,9 +274,9 @@ class SessionManager
     /**
      * Returns the current session.
      *
-     * @return Session|null
+     * @return SessionDataHolder|null
      */
-    public function getSession():?Session
+    public function getSession():?SessionDataHolder
     {
         return $this->session;
     }

@@ -26,12 +26,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 
 /**
- * Class Session
+ * Class SessionDataHolder
  *
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class Session implements \IteratorAggregate, \ArrayAccess
+class SessionDataHolder implements \IteratorAggregate, \ArrayAccess
 {
     // session data headers
     public const HEADER_IP = "__clientIp";
@@ -83,12 +83,12 @@ class Session implements \IteratorAggregate, \ArrayAccess
     /**
      * @param SessionManager $sessionManager
      * @param ServerRequestInterface $request
-     * @return Session
+     * @return SessionDataHolder
      * @throws \Exception
      */
-    public static function factory(SessionManager $sessionManager, ServerRequestInterface $request):Session
+    public static function factory(SessionManager $sessionManager, ServerRequestInterface $request):SessionDataHolder
     {
-        return new Session($sessionManager, bin2hex(random_bytes(32)), [
+        return new SessionDataHolder($sessionManager, bin2hex(random_bytes(32)), [
             self::HEADER_IP => $request->getServerParams()["REMOTE_ADDR"] ?? null,
             self::HEADER_LAST_REQ => time()
         ]);
