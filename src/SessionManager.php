@@ -271,11 +271,10 @@ class SessionManager
 	 * Verifies if the session is started.
 	 *
 	 * @return bool
-     * @throws NoSessionStartedException
 	 */
 	public function isStarted():bool
 	{
-		return $this->getDataHolder() !== null;
+		return $this->dataHolder instanceof SessionDataHolder;
 	}
 
     /**
