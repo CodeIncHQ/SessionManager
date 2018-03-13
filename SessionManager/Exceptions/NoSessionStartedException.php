@@ -16,48 +16,36 @@
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     13/03/2018
-// Time:     13:03
+// Time:     13:49
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionMiddleware;
+namespace CodeInc\SessionManager\Exceptions;
+use CodeInc\SessionManager\SessionManager;
 use Throwable;
 
 
 /**
- * Class SessionMiddlewareException
+ * Class NoSessionStartedException
  *
- * @package CodeInc\Session\Middleware
+ * @package CodeInc\Session\Exceptions
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionMiddlewareException extends SessionException
+class NoSessionStartedException extends SessionManagerException
 {
     /**
-     * @var SessionMiddleware|null
-     */
-    private $middleware;
-
-    /**
-     * SessionMiddlewareException constructor.
+     * NoSessionStartedException constructor.
      *
-     * @param string $message
-     * @param SessionMiddleware|null $middleware
+     * @param SessionManager|null $sessionManager
      * @param int|null $code
      * @param null|Throwable $previous
      */
-    public function __construct(string $message, ?SessionMiddleware $middleware = null,
+    public function __construct(?SessionManager $sessionManager = null,
         ?int $code = null, ?Throwable $previous = null)
     {
-        $this->middleware = $middleware;
-        parent::__construct($message, $code, $previous);
-    }
-
-    /**
-     * @return SessionMiddleware|null
-     */
-    public function getMiddleware():?SessionMiddleware
-    {
-        return $this->middleware;
+        parent::__construct(
+            "No session is started, unable to return the session data holder.",
+            $sessionManager, $code, $previous
+        );
     }
 }

@@ -20,8 +20,8 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session;
-use CodeInc\Session\Exceptions\SessionReservedOffsetException;
+namespace CodeInc\SessionManager;
+use CodeInc\SessionManager\Exceptions\SessionReservedOffsetException;
 use Psr\Http\Message\ServerRequestInterface;
 
 

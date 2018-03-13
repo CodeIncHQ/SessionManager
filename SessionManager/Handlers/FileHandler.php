@@ -20,8 +20,8 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Handlers;
-use CodeInc\Session\Exceptions\HandlerException;
+namespace CodeInc\SessionManager\Handlers;
+use CodeInc\SessionManager\Exceptions\HandlerException;
 
 
 /**

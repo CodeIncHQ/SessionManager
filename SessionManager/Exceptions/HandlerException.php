@@ -15,41 +15,49 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     12/03/2018
-// Time:     17:41
-// Project:  lib-session
+// Date:     08/03/2018
+// Time:     17:31
+// Project:  lib-doctrinesessionhandler
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionManager;
+namespace CodeInc\SessionManager\Exceptions;
+use CodeInc\SessionManager\Handlers\HandlerInterface;
 use Throwable;
 
 
 /**
- * Class SessionReservedOffsetException
+ * Class HandlerException
  *
- * @package CodeInc\Session\Exceptions
+ * @package CodeInc\Session\Handlers
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionReservedOffsetException extends SessionManagerException
+class HandlerException extends \Exception
 {
 	/**
-	 * ReservedOffsetException constructor.
-	 *
-	 * @param $offset
-	 * @param SessionManager|null $sessionManager
-	 * @param int|null $code
-	 * @param null|Throwable $previous
+	 * @var HandlerInterface
 	 */
-	public function __construct($offset, ?SessionManager $sessionManager = null,
+	private $handler;
+
+    /**
+     * SessionHandlerException constructor.
+     *
+     * @param string $message
+     * @param HandlerInterface $handler
+     * @param int|null $code
+     * @param null|Throwable $previous
+     */
+	public function __construct(string $message, HandlerInterface $handler,
 		?int $code = null, ?Throwable $previous = null)
 	{
-		parent::__construct(
-			sprintf("Unable to write the offset %s, this offset "
-				."is reserved for the session headers", $offset),
-			$sessionManager,
-			$code,
-			$previous
-		);
+		$this->handler = $handler;
+		parent::__construct($message, $code, $previous);
 	}
+
+    /**
+     * @return HandlerInterface
+     */
+    public function getHandler():HandlerInterface
+    {
+        return $this->handler;
+    }
 }

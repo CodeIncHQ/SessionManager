@@ -20,8 +20,8 @@
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session;
-use CodeInc\Session\Exceptions\SessionMiddlewareException;
+namespace CodeInc\SessionManager;
+use CodeInc\SessionManager\Exceptions\SessionMiddlewareException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -64,7 +64,7 @@ class SessionMiddleware implements MiddlewareInterface
 
     /**
      * @inheritdoc
-     * @throws \CodeInc\Session\Exceptions\SessionManagerException
+     * @throws \CodeInc\SessionManager\Exceptions\SessionManagerException
      */
     public function process(ServerRequestInterface $request,
         RequestHandlerInterface $handler):ResponseInterface
