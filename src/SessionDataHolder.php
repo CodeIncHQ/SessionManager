@@ -95,14 +95,6 @@ class SessionDataHolder implements \IteratorAggregate, \ArrayAccess
     }
 
     /**
-     * @return SessionManager
-     */
-    public function getSessionManager():SessionManager
-    {
-        return $this->sessionManager;
-    }
-
-    /**
      * Returns the session id.
      *
      * @return string
