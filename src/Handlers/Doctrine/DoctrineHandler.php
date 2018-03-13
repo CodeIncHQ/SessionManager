@@ -114,6 +114,9 @@ class DoctrineHandler implements HandlerInterface
         }
         $sessionData->updateLastHit();
         $this->entityManager->persist($sessionData);
+        if ($this->entityManager->isOpen()) {
+            $this->entityManager->flush();
+        }
     }
 
     /**
