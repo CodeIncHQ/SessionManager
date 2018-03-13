@@ -1,4 +1,4 @@
-# Session manager service
+# Session manager 
 This library is a simple session management service written in PHP 7. The library is compatible with PSR-15 and PSR-7. It provides a PSR-15 middleware to attach the session manager to the PSR-7 request object as an attribute. 
 
 Saving and writting the session goes through a session handler implementing [`HandlerInterface`](src/Handlers/HandlerInterface.php).
