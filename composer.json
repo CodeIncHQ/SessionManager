@@ -9,8 +9,7 @@
     "php": ">=7.1",
     "psr/http-server-handler": "^1.0",
     "hansott/psr7-cookies": "^1.0",
-    "codeinc/lib-psr15middlewares": "^1.2",
-    "codeinc/lib-servicemanager": "dev-master"
+    "codeinc/lib-psr15middlewares": "^1.2"
   },
   "require-dev": {
     "phpunit/phpunit": "^7",
@@ -42,8 +41,5 @@
   },
   "suggest": {
     "doctrine/orm": "Required in order to use the DoctrineHandler"
-  },
-  "repositories": [
-    { "type": "vcs", "url": "https://github.com/CodeIncHQ/lib-servicemanager" }
-  ]
+  }
 }
