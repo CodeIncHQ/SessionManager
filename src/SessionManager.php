@@ -21,6 +21,7 @@
 //
 declare(strict_types = 1);
 namespace CodeInc\Session;
+use CodeInc\ServiceManager\ServiceInterface;
 use CodeInc\Session\Exceptions\ReservedOffsetException;
 use CodeInc\Session\Exceptions\SessionManagerException;
 use HansOtt\PSR7Cookies\SetCookie;
@@ -33,7 +34,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManager implements \IteratorAggregate, \ArrayAccess
+class SessionManager implements \IteratorAggregate, \ArrayAccess, ServiceInterface
 {
 	public const HEADER_IP = "__clientIp";
 	public const HEADER_LAST_REQ = "__lastRequest";
