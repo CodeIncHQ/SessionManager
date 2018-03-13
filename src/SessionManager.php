@@ -281,10 +281,10 @@ class SessionManager
     /**
      * Returns the current session data holder.
      *
-     * @return SessionDataHolder|null
+     * @return SessionDataHolder
      * @throws NoSessionStartedException
      */
-    public function getDataHolder():?SessionDataHolder
+    public function getDataHolder():SessionDataHolder
     {
         if (!$this->isStarted()) {
             throw new NoSessionStartedException($this);
