@@ -1,7 +1,7 @@
 # Session manager service
 This library is a simple session management service written in PHP 7. The library is compatible with PSR-15 and PSR-7. It provides a PSR-15 middleware to attach the session manager to the PSR-7 request object as an attribute. 
 
-Saving and writting the session goes through a session handler implementing the native PHP interface [`SessionHandlerInterface`](http://php.net/manual/en/class.sessionhandlerinterface.php).
+Saving and writting the session goes through a session handler implementing [`HandlerInterface`](src/Handlers/HandlerInterface.php).
 
 ## Usage 
 ```php
@@ -10,7 +10,7 @@ use CodeInc\Session\SessionManager;
 
 // the session manager need a session handler to start
 $sessionManager = new SessionManager(
-	new MySessionHandler() //  any handler implementing \SessionHandlerInterface
+	new MySessionHandler() //  any handler implementing HandlerInterface
 );
 $sessionManager->setName("AGreatSession");
 $sessionManager->setExpire(30); // minutes
@@ -28,9 +28,9 @@ foreach ($session as $var => $value) {
 ```
 
 ### Middleware
-A [PSR-15](https://www.php-fig.org/psr/psr-15/) [middleware](https://www.php-fig.org/psr/psr-15/#22-psrhttpservermiddlewareinterface) `SessionMiddleware` is provided to attach to session manager to the request object and to send out the session cookie by attaching them to the PSR-7 response. The cookie is only attached to `text/html` responses. 
+A [PSR-15](https://www.php-fig.org/psr/psr-15/) [middleware](https://www.php-fig.org/psr/psr-15/#22-psrhttpservermiddlewareinterface) [`SessionMiddleware`](src/SessionMiddleware.php) is provided to attach to session manager to the request object and to send out the session cookie by attaching them to the PSR-7 response. The cookie is only attached to `text/html` responses. 
 
-The Middleware uses the ServiceManager class (from the [`lib-sessionmanager`](https://github.com/CodeIncHq/lib-servicemanager)) to access the `SessionManager` service. 
+The Middleware uses the ServiceManager class (from the [`lib-sessionmanager`](https://github.com/CodeIncHq/lib-servicemanager)) to access the [`SessionManager`](src/SessionManager.php) service. 
  
 ```php
 <?php
