@@ -21,9 +21,8 @@
 //
 declare(strict_types = 1);
 namespace CodeInc\Session;
-use CodeInc\ServiceManager\ServiceInterface;
-use CodeInc\Session\Exceptions\ReservedOffsetException;
 use CodeInc\Session\Exceptions\SessionManagerException;
+use CodeInc\Session\Handlers\HandlerInterface;
 use HansOtt\PSR7Cookies\SetCookie;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -34,73 +33,67 @@ use Psr\Http\Message\ServerRequestInterface;
  * @package CodeInc\Session
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManager implements \IteratorAggregate, \ArrayAccess, ServiceInterface
+class SessionManager
 {
-	public const HEADER_IP = "__clientIp";
-	public const HEADER_LAST_REQ = "__lastRequest";
-	public const HEADER_CLEAN_UP = "__cleanUp";
-	private const ALL_HEADERS = [
-		self::HEADER_IP,
-		self::HEADER_LAST_REQ,
-		self::HEADER_CLEAN_UP
-	];
-
 	public const DEFAULT_NAME = "SID";
 	public const DEFAULT_EXPIRE = 60;
 
-	/**
-	 * Session ID
-	 *
-	 * @var string
-	 */
-	protected $id;
+    /**
+     * Session handler
+     *
+     * @var HandlerInterface
+     */
+    private $handler;
 
-	/**
+    /**
+     * Session object
+     *
+     * @see SessionManager::getSession()
+     * @var Session|null
+     */
+    private $session;
+
+    /**
 	 * Session name
 	 *
 	 * @var string
 	 */
 	private $name;
 
-	/**
+    /**
 	 * Session lifespan in minutes.
 	 *
 	 * @var int
 	 */
 	private $expire;
 
-	/**
+    /**
 	 * Session cookie host
 	 *
 	 * @var string|null
 	 */
 	private $cookieHost;
 
-	/**
+    /**
 	 * Session cookie secure
 	 *
-	 * @var bool|null
+	 * @var bool
 	 */
-	private $cookieSecure;
+	private $cookieSecure = false;
 
-	/**
+    /**
 	 * Session cookie path
 	 *
 	 * @var string|null
 	 */
 	private $cookiePath;
 
-	/**
+    /**
 	 * Verifies if the session cookie must be HTTP only.
 	 *
 	 * @var bool
 	 */
 	private $cookieHttpOnly = true;
-
-	/**
-	 * @var \SessionHandlerInterface
-	 */
-	private $handler;
 
 	/**
 	 * Verifies if the client IP address needs to be validated.
@@ -110,32 +103,15 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess, ServiceInterfa
 	private $validateClientIp = false;
 
 	/**
-	 * Parent request
-	 *
-	 * @var ServerRequestInterface
-	 */
-	private $request;
-
-	/**
-	 * Session data
-	 *
-	 * @var array
-	 */
-	protected $data = [];
-
-	/**
 	 * SessionManager constructor.
 	 *
-	 * @param ServerRequestInterface $request
-	 * @param \SessionHandlerInterface $handler
+	 * @param HandlerInterface $handler
 	 * @param null|string $name
 	 * @param int|null $expire
 	 */
-	public function __construct(ServerRequestInterface $request,
-		\SessionHandlerInterface $handler, ?string $name = null,
+	public function __construct(HandlerInterface $handler, ?string $name = null,
 		?int $expire = null)
 	{
-		$this->request = $request;
 		$this->handler = $handler;
 		$this->name = $name ?? self::DEFAULT_NAME;
 		$this->expire = $expire ?? self::DEFAULT_EXPIRE;
@@ -146,62 +122,61 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess, ServiceInterfa
 	 */
 	public function __destruct()
 	{
-		if ($this->isStarted()) {
-			$this->data[self::HEADER_LAST_REQ] = time();
-			if (!isset($this->data[self::HEADER_CLEAN_UP])) {
-				$this->getHandler()->gc($this->getExpire() * 60);
-				$this->data[self::HEADER_CLEAN_UP] = true;
+		if ($session = $this->getSession()) {
+		    // saving the session
+			$session->updateLastRequestTime();
+            $this->getHandler()->write($session->getId(), $session->getData());
+
+            // one time on 100 we delete the expired sessions
+			if (rand(1, 100) == 50) {
+				$this->getHandler()->cleanup($this->getExpire() * 60);
+				$session[$session::HEADER_CLEAN_UP] = true;
 			}
-			$this->getHandler()->write($this->id, serialize($this->data));
 		}
 	}
 
 	/**
-	 * @return ServerRequestInterface
+	 * @return HandlerInterface
 	 */
-	public function getRequest():ServerRequestInterface
-	{
-		return $this->request;
-	}
-
-	/**
-	 * @return \SessionHandlerInterface
-	 */
-	public function getHandler():\SessionHandlerInterface
+	public function getHandler():HandlerInterface
 	{
 		return $this->handler;
 	}
 
-	/**
-	 * @throws SessionManagerException
-	 */
-	public function start():void
+    /**
+     * @param ServerRequestInterface $request
+     * @return Session
+     * @throws SessionManagerException
+     */
+	public function start(ServerRequestInterface $request):Session
 	{
 		try {
-			// loading the session id
-			$this->id = $this->getRequest()->getCookieParams()[$this->getName()]
-				?? bin2hex(random_bytes(32));
-
-			// starting the handler
-			$this->getHandler()->open('', $this->id);
-
-			// if the session exists
-			if (isset($this->getRequest()->getCookieParams()[$this->getName()])) {
-				// the session is not valid = we delete the previous one and create a new one.
-				if (!($data = $this->getHandler()->read($this->id))
-					|| !($this->data = unserialize($data))
-					|| !is_array($this->data)
-					|| !$this->isValid())
-				{
-					$this->getHandler()->destroy($this->id);
-					$this->newSession();
+            // if the session exists, loading it!
+			if (isset($request->getCookieParams()[$this->getName()])) {
+			    $id = $request->getCookieParams()[$this->getName()];
+                // the session is not valid = we delete the previous one and create a new one.
+				if (($data = $this->getHandler()->read($id)) !== null) {
+				    $this->session = new Session($this, $id, $data);
+				    // if the session is invalid, we destroy the previous one and create a new one
+				    if (!$this->isSessionValid($this->session, $request)) {
+                        $this->getHandler()->destroy($id);
+                        $this->session = Session::factory($this, $request);
+                    }
 				}
+
+				// if the session can not be loaded, we create a new one
+				else {
+                    $this->getHandler()->destroy($id);
+                    $this->session = Session::factory($this, $request);
+                }
 			}
 
-			// creating the session
+			// else creating the session
 			else {
-				$this->newSession();
+                $this->session = Session::factory($this, $request);
 			}
+
+			return $this->session;
 		}
 		catch (\Throwable $exception) {
 			throw new SessionManagerException(
@@ -211,85 +186,79 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess, ServiceInterfa
 		}
 	}
 
+    /**
+     * Verifies if a session is valid
+     *
+     * @param Session $session
+     * @param ServerRequestInterface $request
+     * @return bool
+     */
+    private function isSessionValid(Session $session, ServerRequestInterface $request):bool
+    {
+        // if the session is expired
+        if (($lastReq = $session->getLastRequestTime())
+            && ($lastReq + $session->getSessionManager()->getExpire() * 60) < time())
+        {
+            return false;
+        }
+
+        // if the client IP changed
+        if ($this->getValidateClientIp()
+            && ($clientIp = $session->getClientIp())
+            && isset($request->getServerParams()['REMOTE_ADDR'])
+            && $clientIp != $request->getServerParams()['REMOTE_ADDR'])
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns the session cookie.
+     *
+     * @return SetCookie|null
+     * @throws SessionManagerException
+     */
+    public function getSessionCookie():?SetCookie
+    {
+        try {
+            // envoie du cookie de session
+            if ($session = $this->getSession()) {
+                return new SetCookie(
+                    $this->getName(),
+                    $session->getId(),
+                    (time() + $this->getExpire() * 60),
+                    $this->getCookiePath() ?? "/",
+                    $this->getCookieHost(),
+                    $this->getCookieSecure(),
+                    $this->isCookieHttpOnly()
+                );
+            }
+
+            // sinon destruction du cookie de session
+            else {
+                return SetCookie::thatDeletesCookie($this->getName());
+            }
+        }
+        catch (\Throwable $exception) {
+            throw new SessionManagerException(
+                "Error while preparing the session cookie",
+                $this, null, $exception
+            );
+        }
+    }
+
 	/**
 	 * Stops the session. All session data are destroyed in memory and on the
 	 * storage unit through the handler.
 	 */
 	public function stop():void
 	{
-		if ($this->isStarted()) {
-			$this->getHandler()->destroy($this->id);
-			$this->getHandler()->close();
+		if ($session = $this->getSession()) {
+			$this->getHandler()->destroy($session->getId());
+			$this->session = null;
 		}
-		$this->id = null;
-		$this->data = [];
-	}
-
-	/**
-	 * Generates a new session.
-	 */
-	private function newSession():void
-	{
-		$this->data = [
-			self::HEADER_IP => $this->getRequest()->getServerParams()["REMOTE_ADDR"] ?? null,
-			self::HEADER_LAST_REQ => time()
-		];
-	}
-
-	/**
-	 * Verifies if the session is expired
-	 *
-	 * @return bool
-	 */
-	protected function isValid():bool
-	{
-		// if the session is expired
-		if (($lastReq = $this->getLastRequestTimestamp())
-			&& ($lastReq + $this->getExpire() * 60) < time())
-		{
-			return false;
-		}
-
-		// if the client IP changed
-		if ($this->getValidateClientIp()
-			&& ($clientIp = $this->getClientIp())
-			&& isset($this->getRequest()->getServerParams()['REMOTE_ADDR'])
-			&& $clientIp != $this->getRequest()->getServerParams()['REMOTE_ADDR'])
-		{
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Return the timestmap of the last request.
-	 *
-	 * @return int|null
-	 */
-	public function getLastRequestTimestamp():?int
-	{
-		return $this->data[self::HEADER_LAST_REQ];
-	}
-
-	/**
-	 * Returns the IP used to start the current session.
-	 *
-	 * @return null|string
-	 */
-	public function getClientIp():?string
-	{
-		return $this->data[self::HEADER_IP] ?? null;
-	}
-
-	/**
-	 * Returns the session id.
-	 *
-	 * @return string
-	 */
-	public function getId():string
-	{
-		return $this->id;
 	}
 
 	/**
@@ -299,69 +268,18 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess, ServiceInterfa
 	 */
 	public function isStarted():bool
 	{
-		return $this->id !== null;
+		return $this->getSession() !== null;
 	}
 
-	/**
-	 * Returns the session data.
-	 *
-	 * @return array
-	 */
-	public function getData():array
-	{
-		return $this->data;
-	}
-
-	/**
-	 * Unsets all session data.
-	 */
-	public function unsetData():void
-	{
-		foreach (array_keys($this->data) as $var) {
-			if (!in_array($var, self::ALL_HEADERS)) {
-				unset($this->data[$var]);
-			}
-		}
-	}
-
-	/**
-	 * Returns the session cookie.
-	 *
-	 * @return SetCookie|null
-	 * @throws SessionManagerException
-	 */
-	public function getSessionCookie():?SetCookie
-	{
-		try {
-			// envoie du cookie de session
-			if ($this->isStarted()) {
-				return new SetCookie(
-					$this->getName(),
-					$this->getId(),
-					(time() + $this->getExpire() * 60),
-					$this->getCookiePath() ?? "/",
-					$this->getCookieHost()
-						?? $this->getRequest()->getUri()->getHost(),
-					$this->getCookieSecure()
-						?? ($this->getRequest()->getUri()->getScheme() == "https"),
-					$this->isCookieHttpOnly()
-				);
-			}
-
-			// si la session était lancée mais a été stoppée
-			elseif (isset($this->getRequest()->getCookieParams()[$this->getName()])) {
-				return SetCookie::thatDeletesCookie($this->getName());
-			}
-
-			return null;
-		}
-		catch (\Throwable $exception) {
-			throw new SessionManagerException(
-				"Error while preparing the session cookie",
-				$this, null, $exception
-			);
-		}
-	}
+    /**
+     * Returns the current session.
+     *
+     * @return Session|null
+     */
+    public function getSession():?Session
+    {
+        return $this->session;
+    }
 
 	/**
 	 * @param string $name
@@ -473,58 +391,5 @@ class SessionManager implements \IteratorAggregate, \ArrayAccess, ServiceInterfa
 	public function getValidateClientIp():bool
 	{
 		return $this->validateClientIp;
-	}
-
-	/**
-	 * @inheritdoc
-	 * @return \ArrayIterator
-	 */
-	public function getIterator():\ArrayIterator
-	{
-		return new \ArrayIterator($this->data);
-	}
-
-	/**
-	 * @inheritdoc
-	 * @throws ReservedOffsetException
-	 */
-	public function offsetSet($offset, $value):void
-	{
-		if (in_array($offset, self::ALL_HEADERS)) {
-			throw new ReservedOffsetException($offset, $this);
-		}
-		$this->data[$offset] = $value;
-	}
-
-	/**
-	 * @inheritdoc
-	 * @param mixed $offset
-	 * @return mixed|null
-	 */
-	public function offsetGet($offset)
-	{
-		return $this->data[$offset] ?? null;
-	}
-
-	/**
-	 * @inheritdoc
-	 * @param mixed $offset
-	 * @return bool
-	 */
-	public function offsetExists($offset):bool
-	{
-		return isset($this->data[$offset]);
-	}
-
-	/**
-	 * @inheritdoc
-	 * @throws ReservedOffsetException
-	 */
-	public function offsetUnset($offset):void
-	{
-		if (in_array($offset, self::ALL_HEADERS)) {
-			throw new ReservedOffsetException($offset, $this);
-		}
-		unset($this->data[$offset]);
 	}
 }
