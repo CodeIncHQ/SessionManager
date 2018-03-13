@@ -30,8 +30,6 @@ foreach ($session as $var => $value) {
 ### Middleware
 A [PSR-15](https://www.php-fig.org/psr/psr-15/) [middleware](https://www.php-fig.org/psr/psr-15/#22-psrhttpservermiddlewareinterface) [`SessionMiddleware`](src/SessionMiddleware.php) is provided to attach to session manager to the request object and to send out the session cookie by attaching them to the PSR-7 response. The cookie is only attached to `text/html` responses. 
 
-The Middleware uses the ServiceManager class (from the [`lib-sessionmanager`](https://github.com/CodeIncHq/lib-servicemanager)) to access the [`SessionManager`](src/SessionManager.php) service. 
- 
 ```php
 <?php
 use CodeInc\Session\SessionMiddleware;
@@ -47,9 +45,12 @@ $psr7Response = $middleware->process(
 	$psr7ServerRequest, 
 	$somePsr15RequestHandler
 );
+```
+Withing a controller or another middleware you and access the session data from the PSR-7 request attributes using:
+```php
+<?php
+use CodeInc\Session\SessionMiddleware;
 
-// withing a controller or another middleware you and access the session data from
-// the request attributes using:
 $session = SessionMiddleware::getSession($psr7ServerRequest);
 $session["user_name"] = "John Smith";
 echo $session["user_name"];
