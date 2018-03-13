@@ -32,6 +32,7 @@ A [PSR-15](https://www.php-fig.org/psr/psr-15/) [middleware](https://www.php-fig
 
 ```php
 <?php
+use CodeInc\SessionManager\SessionManager;
 use CodeInc\SessionManager\SessionMiddleware;
 
 // the middleware needs the session manager
