@@ -22,7 +22,7 @@
 declare(strict_types = 1);
 namespace CodeInc\Session\Handlers\Doctrine;
 use CodeInc\Session\Handlers\HandlerInterface;
-use CodeInc\Session\Handlers\HandlerException;
+use CodeInc\Session\Exceptions\HandlerException;
 use Doctrine\ORM\EntityManager;
 
 /**

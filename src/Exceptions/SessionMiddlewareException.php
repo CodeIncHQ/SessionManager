@@ -15,48 +15,49 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     08/03/2018
-// Time:     17:31
-// Project:  lib-doctrinesessionhandler
+// Date:     13/03/2018
+// Time:     13:03
+// Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Handlers;
+namespace CodeInc\Session\Exceptions;
+use CodeInc\Session\SessionMiddleware;
 use Throwable;
 
 
 /**
- * Class HandlerException
+ * Class SessionMiddlewareException
  *
- * @package CodeInc\Session\Handlers
+ * @package CodeInc\Session\Middleware
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class HandlerException extends \Exception
+class SessionMiddlewareException extends SessionException
 {
-	/**
-	 * @var HandlerInterface
-	 */
-	private $handler;
+    /**
+     * @var SessionMiddleware|null
+     */
+    private $middleware;
 
     /**
-     * SessionHandlerException constructor.
+     * SessionMiddlewareException constructor.
      *
      * @param string $message
-     * @param HandlerInterface $handler
+     * @param SessionMiddleware|null $middleware
      * @param int|null $code
      * @param null|Throwable $previous
      */
-	public function __construct(string $message, HandlerInterface $handler,
-		?int $code = null, ?Throwable $previous = null)
-	{
-		$this->handler = $handler;
-		parent::__construct($message, $code, $previous);
-	}
+    public function __construct(string $message, ?SessionMiddleware $middleware = null,
+        ?int $code = null, ?Throwable $previous = null)
+    {
+        $this->middleware = $middleware;
+        parent::__construct($message, $code, $previous);
+    }
 
     /**
-     * @return HandlerInterface
+     * @return SessionMiddleware|null
      */
-    public function getHandler():HandlerInterface
+    public function getMiddleware():?SessionMiddleware
     {
-        return $this->handler;
+        return $this->middleware;
     }
 }

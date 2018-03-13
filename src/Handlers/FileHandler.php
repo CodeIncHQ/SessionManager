@@ -21,6 +21,7 @@
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Handlers;
+use CodeInc\Session\Exceptions\HandlerException;
 
 
 /**

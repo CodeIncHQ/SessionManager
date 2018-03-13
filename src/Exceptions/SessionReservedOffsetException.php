@@ -26,12 +26,12 @@ use Throwable;
 
 
 /**
- * Class ReservedOffsetException
+ * Class SessionReservedOffsetException
  *
  * @package CodeInc\Session\Exceptions
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class ReservedOffsetException extends SessionManagerException
+class SessionReservedOffsetException extends SessionManagerException
 {
 	/**
 	 * ReservedOffsetException constructor.
@@ -46,7 +46,7 @@ class ReservedOffsetException extends SessionManagerException
 	{
 		parent::__construct(
 			sprintf("Unable to write the offset %s, this offset "
-				."is reserved for the session manager", $offset),
+				."is reserved for the session headers", $offset),
 			$sessionManager,
 			$code,
 			$previous
