@@ -21,6 +21,7 @@
 //
 declare(strict_types = 1);
 namespace CodeInc\Session;
+use CodeInc\Session\Exceptions\NoSessionStartedException;
 use CodeInc\Session\Exceptions\SessionManagerException;
 use CodeInc\Session\Handlers\HandlerInterface;
 use HansOtt\PSR7Cookies\SetCookie;
@@ -119,10 +120,14 @@ class SessionManager
 
 	/**
 	 * Destructor. Saves the session data.
+     *
+     * @throws NoSessionStartedException
 	 */
 	public function __destruct()
 	{
-		if ($dataHolder = $this->getDataHolder()) {
+		if ($this->isStarted()) {
+		    $dataHolder = $this->getDataHolder();
+
 		    // saving the session
 			$dataHolder->updateLastRequestTime();
             $this->getHandler()->write($dataHolder->getId(), $dataHolder->getData());
@@ -223,10 +228,10 @@ class SessionManager
     {
         try {
             // envoie du cookie de session
-            if ($session = $this->getDataHolder()) {
+            if ($this->isStarted()) {
                 return new SetCookie(
                     $this->getName(),
-                    $session->getId(),
+                    $this->getDataHolder()->getId(),
                     (time() + $this->getExpire() * 60),
                     $this->getCookiePath() ?? "/",
                     $this->getCookieHost(),
@@ -251,11 +256,13 @@ class SessionManager
 	/**
 	 * Stops the session. All session data are destroyed in memory and on the
 	 * storage unit through the handler.
+     *
+     * @throws NoSessionStartedException
 	 */
 	public function stop():void
 	{
-		if ($session = $this->getDataHolder()) {
-			$this->getHandler()->destroy($session->getId());
+		if ($this->isStarted()) {
+			$this->getHandler()->destroy($this->getDataHolder()->getId());
 			$this->dataHolder = null;
 		}
 	}
@@ -264,6 +271,7 @@ class SessionManager
 	 * Verifies if the session is started.
 	 *
 	 * @return bool
+     * @throws NoSessionStartedException
 	 */
 	public function isStarted():bool
 	{
@@ -274,9 +282,13 @@ class SessionManager
      * Returns the current session data holder.
      *
      * @return SessionDataHolder|null
+     * @throws NoSessionStartedException
      */
     public function getDataHolder():?SessionDataHolder
     {
+        if (!$this->isStarted()) {
+            throw new NoSessionStartedException($this);
+        }
         return $this->dataHolder;
     }
 
