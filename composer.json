@@ -2,7 +2,7 @@
   "name": "codeinc/sessionmanager",
   "version": "2.1.0",
   "description": "Simple session management library written in PHP 7",
-  "homepage": "https://github.com/CodeIncHQ/sessionmanager",
+  "homepage": "https://github.com/CodeIncHQ/SessionManager",
   "type": "library",
   "license": "MIT",
   "require": {

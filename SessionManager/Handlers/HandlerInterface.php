@@ -17,7 +17,7 @@
 // Author:   Joan Fabrégat <joan@codeinc.fr>
 // Date:     13/03/2018
 // Time:     12:28
-// Project:  lib-session
+// Project:  SessionManager
 //
 declare(strict_types = 1);
 namespace CodeInc\SessionManager\Handlers;
