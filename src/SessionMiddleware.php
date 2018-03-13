@@ -22,7 +22,7 @@
 declare(strict_types = 1);
 namespace CodeInc\Session;
 use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
-use CodeInc\ServiceManager\ServiceManager;
+use CodeInc\Session\Exceptions\SessionMiddlewareException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -32,7 +32,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * Class SessionMiddleware
  *
- * @package CodeInc\Session
+ * @package CodeInc\Session\Middleware
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
 class SessionMiddleware extends AbstractRecursiveMiddleware
@@ -40,21 +40,29 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
     public const REQ_ATTR = '__sessionManager';
 
     /**
-     * @var ServiceManager
+     * @var SessionManager
      */
-    private $serviceManager;
+    private $sessionManager;
 
     /**
      * SessionMiddleware constructor.
      *
-     * @param ServiceManager $serviceManager
+     * @param SessionManager $sessionManager
      * @param null|MiddlewareInterface $nextMiddleware
      */
-    public function __construct(ServiceManager $serviceManager,
+    public function __construct(SessionManager $sessionManager,
         ?MiddlewareInterface $nextMiddleware = null)
     {
         parent::__construct($nextMiddleware);
-        $this->serviceManager = $serviceManager;
+        $this->sessionManager = $sessionManager;
+    }
+
+    /**
+     * @return SessionManager
+     */
+    public function getSessionManager():SessionManager
+    {
+        return $this->sessionManager;
     }
 
     /**
@@ -65,27 +73,37 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
         RequestHandlerInterface $handler):ResponseInterface
     {
         // get the session manager and starts the session if not started
-        $sessionManager = $this->serviceManager->getService(
-            SessionManager::class,
-            [$request, $handler]
-        );
-
-        /** @var SessionManager $sessionManager */
-        if (!$sessionManager->isStarted()) {
-            $sessionManager->start();
-        }
+        $session = $this->sessionManager->start($request);
 
         // processes the response
         $response = parent::process(
-            $request->withAttribute(self::REQ_ATTR, $sessionManager),
+            $request->withAttribute(static::REQ_ATTR, $session),
             $handler
         );
 
         // if the response is a HTML page, attaches the cookie
         if (preg_match("#^text/html#ui", $response->getHeaderLine("Content-Type"))) {
-            $response = $sessionManager->getSessionCookie()->addToResponse($response);
+            $response = $this->sessionManager->getSessionCookie()->addToResponse($response);
         }
 
         return $response;
+    }
+
+    /**
+     * Returns the session object attached to a request.
+     *
+     * @param ServerRequestInterface $request
+     * @return Session
+     * @throws SessionMiddlewareException
+     */
+    public static function getSession(ServerRequestInterface $request):Session
+    {
+        $session = $request->getAttribute(static::REQ_ATTR);
+        if (!$session instanceof Session) {
+            throw new SessionMiddlewareException(
+                "No session object is available in the request attributes"
+            );
+        }
+        return $session;
     }
 }

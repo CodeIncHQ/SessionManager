@@ -8,22 +8,21 @@ Saving and writting the session goes through a session handler implementing the 
 <?php
 use CodeInc\Session\SessionManager;
 
-// the session manager need the request object and a session handler to start
+// the session manager need a session handler to start
 $sessionManager = new SessionManager(
-	$psr7ServerRequest, // the PSR-7 server request 
-	new MySessionHandler //  any handler implementing \SessionHandlerInterface
+	new MySessionHandler() //  any handler implementing \SessionHandlerInterface
 );
 $sessionManager->setName("AGreatSession");
 $sessionManager->setExpire(30); // minutes
 $sessionManager->setValidateClientIp(true);
-$sessionManager->start();
+$session = $sessionManager->start($psr7ServerRequest); // the PSR-7 server request
 
 // SessionManager implement ArrayAccess 
-$sessionManager["test"] = "Hello wold!";
-echo $sessionManager["test"];
+$session["test"] = "Hello wold!";
+echo $session["test"];
 
 // SessionManager is also iterable
-foreach ($sessionManager as $var => $value) {
+foreach ($session as $var => $value) {
 	echo "$var = $value\n";
 }
 ```
@@ -36,18 +35,24 @@ The Middleware uses the ServiceManager class (from the [`lib-sessionmanager`](ht
 ```php
 <?php
 use CodeInc\Session\SessionMiddleware;
-use CodeInc\ServiceManager\ServiceManager;
 
-// the middleware needs the service manager 
-$serviceManager = new ServiceManager();
-$serviceManager->addService($psr7ServerRequest);
+// the middleware needs the session manager
+$sessionManager = new SessionManager(new MySessionHandler());
 
 // instantiating the middleware and processing the PSR-7 request, producing a PSR-7 response
-$middleware = new SessionMiddleware($serviceManager);
+// the middleware will take car of starting the session and will attache the session
+// data to the PSR-7 request attributes.
+$middleware = new SessionMiddleware($sessionManager);
 $psr7Response = $middleware->process(
 	$psr7ServerRequest, 
 	$somePsr15RequestHandler
 );
+
+// withing a controller or another middleware you and access the session data from
+// the request attributes using:
+$session = SessionMiddleware::getSession($psr7ServerRequest);
+$session["user_name"] = "John Smith";
+echo $session["user_name"];
 ```
 
 ## Installation

@@ -15,52 +15,50 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     04/03/2018
-// Time:     13:12
+// Date:     13/03/2018
+// Time:     12:28
 // Project:  lib-session
 //
 declare(strict_types = 1);
-namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionManager;
-use Throwable;
+namespace CodeInc\Session\Handlers;
 
 
 /**
- * Class SessionManagerException
+ * Interface HandlerInterface
  *
- * @package CodeInc\Session\Exceptions
+ * @package CodeInc\Session\Handlers
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManagerException extends SessionException
+interface HandlerInterface
 {
-	/**
-	 * @var SessionManager|null
-	 */
-	private $sessionManager;
+    /**
+     * Writes data.
+     *
+     * @param string $id
+     * @param array $data
+     * @return mixed
+     */
+    public function write(string $id, array $data):void;
 
-	/**
-	 * SessionException constructor.
-	 *
-	 * @param string $message
-	 * @param SessionManager|null $sessionManager
-	 * @param int|null $code
-	 * @param null|Throwable $previous
-	 */
-	public function __construct(
-		string $message,
-		?SessionManager $sessionManager = null,
-		?int $code = null,
-		?Throwable $previous = null
-	) {
-		$this->sessionManager = $sessionManager;
-		parent::__construct($message, $code, $previous);
-	}
+    /**
+     * Read data. Returns an array or null if no data is found for the given id.
+     *
+     * @param string $id
+     * @return array|null
+     */
+    public function read(string $id):?array;
 
-	/**
-	 * @return SessionManager|null
-	 */
-	public function getSessionManager():?SessionManager
-	{
-		return $this->sessionManager;
-	}
+    /**
+     * Destroy a session data.
+     *
+     * @param string $id
+     */
+    public function destroy(string $id):void;
+
+    /**
+     * Cleanup session older than
+     *
+     * @param int $maxlifetime Max session lifetime in seconds
+     */
+    public function cleanup(int $maxlifetime):void;
 }

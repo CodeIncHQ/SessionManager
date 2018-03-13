@@ -15,52 +15,49 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     04/03/2018
-// Time:     13:12
-// Project:  lib-session
+// Date:     08/03/2018
+// Time:     17:31
+// Project:  lib-doctrinesessionhandler
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionManager;
+use CodeInc\Session\Handlers\HandlerInterface;
 use Throwable;
 
 
 /**
- * Class SessionManagerException
+ * Class HandlerException
  *
- * @package CodeInc\Session\Exceptions
+ * @package CodeInc\Session\Handlers
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManagerException extends SessionException
+class HandlerException extends \Exception
 {
 	/**
-	 * @var SessionManager|null
+	 * @var HandlerInterface
 	 */
-	private $sessionManager;
+	private $handler;
 
-	/**
-	 * SessionException constructor.
-	 *
-	 * @param string $message
-	 * @param SessionManager|null $sessionManager
-	 * @param int|null $code
-	 * @param null|Throwable $previous
-	 */
-	public function __construct(
-		string $message,
-		?SessionManager $sessionManager = null,
-		?int $code = null,
-		?Throwable $previous = null
-	) {
-		$this->sessionManager = $sessionManager;
+    /**
+     * SessionHandlerException constructor.
+     *
+     * @param string $message
+     * @param HandlerInterface $handler
+     * @param int|null $code
+     * @param null|Throwable $previous
+     */
+	public function __construct(string $message, HandlerInterface $handler,
+		?int $code = null, ?Throwable $previous = null)
+	{
+		$this->handler = $handler;
 		parent::__construct($message, $code, $previous);
 	}
 
-	/**
-	 * @return SessionManager|null
-	 */
-	public function getSessionManager():?SessionManager
-	{
-		return $this->sessionManager;
-	}
+    /**
+     * @return HandlerInterface
+     */
+    public function getHandler():HandlerInterface
+    {
+        return $this->handler;
+    }
 }

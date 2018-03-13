@@ -15,41 +15,33 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     12/03/2018
-// Time:     17:41
+// Date:     13/03/2018
+// Time:     12:35
 // Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionManager;
 use Throwable;
 
 
 /**
- * Class ReservedOffsetException
+ * Class SessionExceptyion
  *
  * @package CodeInc\Session\Exceptions
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class ReservedOffsetException extends SessionManagerException
+class SessionException extends \Exception
 {
-	/**
-	 * ReservedOffsetException constructor.
-	 *
-	 * @param $offset
-	 * @param SessionManager|null $sessionManager
-	 * @param int|null $code
-	 * @param null|Throwable $previous
-	 */
-	public function __construct($offset, ?SessionManager $sessionManager = null,
-		?int $code = null, ?Throwable $previous = null)
-	{
-		parent::__construct(
-			sprintf("Unable to write the offset %s, this offset "
-				."is reserved for the session manager", $offset),
-			$sessionManager,
-			$code,
-			$previous
-		);
-	}
+    /**
+     * SessionException constructor.
+     *
+     * @param string $message
+     * @param int|null $code
+     * @param null|Throwable $previous
+     */
+    public function __construct(string $message, ?int $code = null,
+        ?Throwable $previous = null)
+    {
+        parent::__construct($message, $code ?? 0, $previous);
+    }
 }

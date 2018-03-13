@@ -15,52 +15,49 @@
 // +---------------------------------------------------------------------+
 //
 // Author:   Joan Fabrégat <joan@codeinc.fr>
-// Date:     04/03/2018
-// Time:     13:12
+// Date:     13/03/2018
+// Time:     13:03
 // Project:  lib-session
 //
 declare(strict_types = 1);
 namespace CodeInc\Session\Exceptions;
-use CodeInc\Session\SessionManager;
+use CodeInc\Session\SessionMiddleware;
 use Throwable;
 
 
 /**
- * Class SessionManagerException
+ * Class SessionMiddlewareException
  *
- * @package CodeInc\Session\Exceptions
+ * @package CodeInc\Session\Middleware
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionManagerException extends SessionException
+class SessionMiddlewareException extends SessionException
 {
-	/**
-	 * @var SessionManager|null
-	 */
-	private $sessionManager;
+    /**
+     * @var SessionMiddleware|null
+     */
+    private $middleware;
 
-	/**
-	 * SessionException constructor.
-	 *
-	 * @param string $message
-	 * @param SessionManager|null $sessionManager
-	 * @param int|null $code
-	 * @param null|Throwable $previous
-	 */
-	public function __construct(
-		string $message,
-		?SessionManager $sessionManager = null,
-		?int $code = null,
-		?Throwable $previous = null
-	) {
-		$this->sessionManager = $sessionManager;
-		parent::__construct($message, $code, $previous);
-	}
+    /**
+     * SessionMiddlewareException constructor.
+     *
+     * @param string $message
+     * @param SessionMiddleware|null $middleware
+     * @param int|null $code
+     * @param null|Throwable $previous
+     */
+    public function __construct(string $message, ?SessionMiddleware $middleware = null,
+        ?int $code = null, ?Throwable $previous = null)
+    {
+        $this->middleware = $middleware;
+        parent::__construct($message, $code, $previous);
+    }
 
-	/**
-	 * @return SessionManager|null
-	 */
-	public function getSessionManager():?SessionManager
-	{
-		return $this->sessionManager;
-	}
+    /**
+     * @return SessionMiddleware|null
+     */
+    public function getMiddleware():?SessionMiddleware
+    {
+        return $this->middleware;
+    }
 }
