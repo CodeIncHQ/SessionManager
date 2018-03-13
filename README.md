@@ -63,10 +63,6 @@ This library is available through [Packagist](https://packagist.org/packages/cod
 composer require codeinc/lib-session
 ```
 
-## Suggested library
-
-We suggest installing the [`lib-doctrinesessionhandler`](https://github.com/CodeIncHQ/lib-doctrinesessionhandler) library if you wan to save you session data in a database. The library uses the excellent [Doctrine](http://www.doctrine-project.org/) to interact with the database server.
-
 ## License
 This library is published under the MIT license (see the [LICENSE](LICENSE) file). 
 
