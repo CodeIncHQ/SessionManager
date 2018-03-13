@@ -1,6 +1,6 @@
 {
   "name": "codeinc/lib-session",
-  "version": "1.3.4",
+  "version": "1.4.0",
   "description": "Simple session management library written in PHP 7",
   "homepage": "https://github.com/CodeIncHQ/lib-session",
   "type": "library",
@@ -10,7 +10,7 @@
     "psr/http-server-handler": "^1.0",
     "hansott/psr7-cookies": "^1.0",
     "codeinc/lib-psr15middlewares": "^1.2",
-    "codeinc/lib-instantiator": "dev-master"
+    "codeinc/lib-servicemanager": "dev-master"
   },
   "require-dev": {
     "phpunit/phpunit": "^7",
@@ -43,6 +43,6 @@
     "codeinc/lib-doctrinesessionhandler": "Provides a session handler to store the session data in a database using Doctrine"
   },
   "repositories": [
-    { "type": "vcs", "url": "https://github.com/CodeIncHQ/lib-instantiator" }
+    { "type": "vcs", "url": "https://github.com/CodeIncHQ/lib-servicemanager" }
   ]
 }

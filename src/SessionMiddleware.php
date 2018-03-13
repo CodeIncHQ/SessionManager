@@ -21,8 +21,8 @@
 //
 declare(strict_types = 1);
 namespace CodeInc\Session;
-use CodeInc\Instantiator\Instantiator;
 use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
+use CodeInc\ServiceManager\ServiceManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -40,21 +40,21 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
     public const REQ_ATTR = '__sessionManager';
 
     /**
-     * @var Instantiator
+     * @var ServiceManager
      */
-    private $instantiator;
+    private $serviceManager;
 
     /**
      * SessionMiddleware constructor.
      *
-     * @param Instantiator $instantiator
+     * @param ServiceManager $serviceManager
      * @param null|MiddlewareInterface $nextMiddleware
      */
-    public function __construct(Instantiator $instantiator,
+    public function __construct(ServiceManager $serviceManager,
         ?MiddlewareInterface $nextMiddleware = null)
     {
         parent::__construct($nextMiddleware);
-        $this->instantiator = $instantiator;
+        $this->serviceManager = $serviceManager;
     }
 
     /**
@@ -64,13 +64,12 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
     public function process(ServerRequestInterface $request,
         RequestHandlerInterface $handler):ResponseInterface
     {
-        // adds the request within the instantiator stack
-        if (!$this->instantiator->hasInstance(ServerRequestInterface::class)) {
-            $this->instantiator->addInstance($request);
-        }
-
         // get the session manager and starts the session if not started
-        $sessionManager = $this->instantiator->getInstance(SessionManager::class);
+        $sessionManager = $this->serviceManager->getService(
+            SessionManager::class,
+            [$request, $handler]
+        );
+
         /** @var SessionManager $sessionManager */
         if (!$sessionManager->isStarted()) {
             $sessionManager->start();
