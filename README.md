@@ -6,7 +6,7 @@ Saving and writting the session goes through a session handler implementing [`Ha
 ## Usage 
 ```php
 <?php
-use CodeInc\Session\SessionManager;
+use CodeInc\SessionManager\SessionManager;
 
 // the session manager need a session handler to start
 $sessionManager = new SessionManager(
@@ -32,7 +32,7 @@ A [PSR-15](https://www.php-fig.org/psr/psr-15/) [middleware](https://www.php-fig
 
 ```php
 <?php
-use CodeInc\Session\SessionMiddleware;
+use CodeInc\SessionManager\SessionMiddleware;
 
 // the middleware needs the session manager
 $sessionManager = new SessionManager(new MySessionHandler());
@@ -49,7 +49,7 @@ $psr7Response = $middleware->process(
 Withing a controller or another middleware you and access the session data from the PSR-7 request attributes using:
 ```php
 <?php
-use CodeInc\Session\SessionMiddleware;
+use CodeInc\SessionManager\SessionMiddleware;
 
 $session = SessionMiddleware::getSession($psr7ServerRequest);
 $session["user_name"] = "John Smith";
