@@ -21,7 +21,6 @@
 //
 declare(strict_types = 1);
 namespace CodeInc\Session;
-use CodeInc\Psr15Middlewares\AbstractRecursiveMiddleware;
 use CodeInc\Session\Exceptions\SessionMiddlewareException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -35,7 +34,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * @package CodeInc\Session\Middleware
  * @author Joan Fabrégat <joan@codeinc.fr>
  */
-class SessionMiddleware extends AbstractRecursiveMiddleware
+class SessionMiddleware implements MiddlewareInterface
 {
     public const REQ_ATTR = '__sessionManager';
 
@@ -50,10 +49,8 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
      * @param SessionManager $sessionManager
      * @param null|MiddlewareInterface $nextMiddleware
      */
-    public function __construct(SessionManager $sessionManager,
-        ?MiddlewareInterface $nextMiddleware = null)
+    public function __construct(SessionManager $sessionManager)
     {
-        parent::__construct($nextMiddleware);
         $this->sessionManager = $sessionManager;
     }
 
@@ -76,9 +73,8 @@ class SessionMiddleware extends AbstractRecursiveMiddleware
         $session = $this->sessionManager->start($request);
 
         // processes the response
-        $response = parent::process(
-            $request->withAttribute(static::REQ_ATTR, $session),
-            $handler
+        $response = $handler->handle(
+            $request->withAttribute(static::REQ_ATTR, $session)
         );
 
         // if the response is a HTML page, attaches the cookie

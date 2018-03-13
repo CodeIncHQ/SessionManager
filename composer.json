@@ -1,6 +1,6 @@
 {
   "name": "codeinc/lib-session",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Simple session management library written in PHP 7",
   "homepage": "https://github.com/CodeIncHQ/lib-session",
   "type": "library",
@@ -8,8 +8,8 @@
   "require": {
     "php": ">=7.1",
     "psr/http-server-handler": "^1.0",
-    "hansott/psr7-cookies": "^1.0",
-    "codeinc/lib-psr15middlewares": "^1.2"
+    "psr/http-server-middleware": "^1.0",
+    "hansott/psr7-cookies": "^1.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^7",
