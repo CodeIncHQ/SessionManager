@@ -154,6 +154,13 @@ class SessionManager
      */
     public function start(ServerRequestInterface $request):SessionDataHolder
     {
+        if (!$this->isStarted()) {
+            throw new SessionManagerException(
+                "A session is already started",
+                $this
+            );
+        }
+
         try {
             // if the session exists, loading it!
             if (isset($request->getCookieParams()[$this->getName()])) {
