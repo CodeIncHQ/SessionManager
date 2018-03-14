@@ -1,6 +1,6 @@
 {
   "name": "codeinc/session-manager",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "Simple session management library written in PHP 7",
   "homepage": "https://github.com/CodeIncHQ/SessionManager",
   "type": "library",
