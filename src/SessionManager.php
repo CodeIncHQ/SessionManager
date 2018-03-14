@@ -154,7 +154,7 @@ class SessionManager
      */
     public function start(ServerRequestInterface $request):SessionDataHolder
     {
-        if (!$this->isStarted()) {
+        if ($this->isStarted()) {
             throw new SessionManagerException(
                 "A session is already started",
                 $this
